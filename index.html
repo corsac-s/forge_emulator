@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Forge Emulator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Ollee Forge Emulator</h1>
+  <p class="subtitle">Runs Forge scripts against a mock-up of an Ollee watch and optionally minify them with <a href="https://github.com/terser/terser">Terser</a></p>
+
+  <div class="layout">
+    <div class="face-panel">
+      <div id="watchface" class="watchface"></div>
+
+      <div class="controls">
+        <button id="btn-l" class="phys-btn">L</button>
+        <button id="btn-m" class="phys-btn">M</button>
+        <button id="btn-a" class="phys-btn">A</button>
+        <button id="btn-tilt" class="phys-btn phys-btn-tilt">TILT</button>
+      </div>
+    </div>
+
+    <div class="editor-panel">
+      <div class="filename-row">
+        <label for="filename-input">File name</label>
+        <input type="text" id="filename-input" placeholder="untitled.js">
+      </div>
+      <div class="toolbar">
+        <input type="file" id="file-input" accept=".js,.txt" hidden>
+        <button id="load-file-btn">Load file</button>
+        <button id="save-file-btn">Save script</button>
+        <button id="minify-btn">Minify</button>
+        <button id="save-minified-btn">Save minified script</button>
+      </div>
+      <div class="toolbar">
+        <button id="run-btn">Run</button>
+        <button id="run-minified-btn">Run minified</button>
+        <button id="stop-btn">Stop</button>
+        <span id="status" class="status"></span>
+      </div>
+      <div class="editor-tabs">
+        <button class="tab-btn active" id="tab-original" type="button"></button>
+        <button class="tab-btn" id="tab-minified" type="button"></button>
+      </div>
+      <textarea id="editor" spellcheck="false"></textarea>
+      <textarea id="editor-minified" spellcheck="false" hidden></textarea>
+      <div id="log" class="log"></div>
+    </div>
+  </div>
+
+  <script src="js/lcdChars.js"></script>
+  <script src="js/watchface.js"></script>
+  <script src="js/ollee.js"></script>
+  <script src="js/vendor/terser.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

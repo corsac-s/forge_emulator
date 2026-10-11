@@ -1,0 +1,187 @@
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #1b1d21;
+  color: #e6e6e6;
+  margin: 0;
+  padding: 24px;
+}
+
+h1 { margin: 0 0 4px; font-size: 20px; }
+.subtitle { margin: 0 0 20px; color: #9aa0a6; font-size: 13px; }
+.subtitle code { color: #cbd2d9; }
+
+.layout {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.face-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.watchface {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  background: #eee;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 0 0 6px #2a2d33, 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.wf-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+}
+
+.wf-cardio {
+  width: 40%;
+  height: auto;
+  top: 15%;
+  left: 30%;
+}
+
+.wf-audio-hotspot {
+  position: absolute;
+  left: 41%;
+  top: 2%;
+  width: 17%;
+  height: 15%;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.wf-audio-hotspot:hover { background: rgba(255, 255, 255, 0.12); }
+
+@keyframes wf-beep-flash-anim {
+  0% { box-shadow: inset 0 0 0 6px rgba(255, 255, 100, 0.9); }
+  100% { box-shadow: inset 0 0 0 6px rgba(255, 255, 100, 0); }
+}
+.wf-beep-flash { animation: wf-beep-flash-anim 250ms ease-out; }
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.phys-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid #4a4e57;
+  background: #2a2d33;
+  color: #e6e6e6;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.phys-btn:active { background: #3d4250; }
+.phys-btn:disabled { opacity: 0.4; cursor: default; }
+
+.phys-btn-tilt { font-size: 11px; }
+
+.editor-panel {
+  flex: 1;
+  min-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filename-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filename-row label { font-size: 13px; color: #9aa0a6; }
+.filename-row input[type="text"] {
+  flex: 1;
+  background: #101114;
+  color: #e6e6e6;
+  border: 1px solid #33363d;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.editor-tabs {
+  display: flex;
+  gap: 2px;
+}
+.tab-btn {
+  background: #1b1d21;
+  color: #9aa0a6;
+  border: 1px solid #33363d;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.tab-btn.active {
+  background: #101114;
+  color: #e6e6e6;
+}
+
+select, button {
+  background: #2a2d33;
+  color: #e6e6e6;
+  border: 1px solid #4a4e57;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.4; cursor: default; }
+
+.status { margin-left: auto; font-size: 12px; padding: 4px 8px; border-radius: 4px; }
+.status.running { background: #1f3d2b; color: #7ee08a; }
+.status.stopped { background: #3d2b1f; color: #e0b57e; }
+.status.error { background: #3d1f1f; color: #e07e7e; }
+
+#editor, #editor-minified {
+  width: 100%;
+  height: 360px;
+  background: #101114;
+  color: #d7dae0;
+  border: 1px solid #33363d;
+  border-radius: 6px;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.log {
+  height: 160px;
+  overflow-y: auto;
+  background: #101114;
+  border: 1px solid #33363d;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: #9aa0a6;
+}
+.log-line { white-space: pre-wrap; }
+.log-error { color: #e07e7e; }
+.log-warn { color: #e0c07e; }
