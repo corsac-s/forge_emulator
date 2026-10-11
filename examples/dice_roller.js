@@ -1,18 +1,18 @@
-var MODES = ['6 ', '20', 'CN', 'RN'];   // d6, d20, coin, random 1-99
+var MODES = [' 6', '20', ' c', ' r'];   // d6, d20, coin, random 1-99
 var mode = 0;
 const subscribe = E_A_SHORT + E_L_SHORT;
 
 function rollValue() {
   switch (MODES[mode]) {
-    case '6 ':  return 1 + Math.floor(6.0 * Ollee.hwRand() / 0xEFFF);
+    case ' 6':  return 1 + Math.floor(6.0 * Ollee.hwRand() / 0xEFFF);
     case '20': return 1 + Math.floor(Math.random() * 20);
-    case 'CN':  return (Ollee.hwRand() & 1) ? 'HEAD' : 'TAIL';
-    case 'RN':  return 1 + Math.floor(Math.random() * 99);
+    case ' c':  return (Ollee.hwRand() & 1) ? 'head ' : 'taiL ';
+    case ' r':  return 1 + Math.floor(Math.random() * 99);
   }
 }
 
 function draw(result) {
-  Ollee.drawMain(('  ' + result).slice(-6));
+  Ollee.drawMain(result);
   Ollee.drawDay(MODES[mode]);
 }
 
