@@ -346,6 +346,7 @@ function runScript(source) {
   log('-- face entered --');
 
   runHook(hooks.init, 'init');
+  watchface.setWeekdayDigits(FORGE_MODE_NAME);
   runHook(hooks.enter, 'enter');
 }
 
@@ -443,6 +444,7 @@ function createModeButton(el, setVisual) {
       updateButtons();
       setStatus('running', 'running');
       log('-- face re-entered --');
+      watchface.setWeekdayDigits(FORGE_MODE_NAME);
       runHook(hooks.enter, 'enter');
     } else {
       showHomeScreen();

@@ -13,7 +13,7 @@ function rollValue() {
 
 function draw(result) {
   Ollee.drawMain(('  ' + result).slice(-6));
-  Ollee.drawMode(MODES[mode]);
+  Ollee.drawDay(MODES[mode]);
 }
 
 function a_short() {

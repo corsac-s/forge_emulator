@@ -19,6 +19,11 @@ const E_UP = 1;
 
 const EJS_TIMER_SLOTS = 4;
 
+// Static face name the firmware shows on the weekday/mode digits while the
+// Forge face is active (FORGE_MODE_NAME in forge_interpreter.h). Scripts
+// can't change it, and Ollee.clear() restores it.
+const FORGE_MODE_NAME = 'F1';
+
 class OlleeRuntime {
   constructor(watchface, log) {
     this.wf = watchface;
@@ -39,7 +44,6 @@ class OlleeRuntime {
   // --- Drawing ---
 
   drawMain(clock) { this.wf.setClockDigits(String(clock)); }
-  drawMode(weekday) { this.wf.setWeekdayDigits(String(weekday)); }
   drawDay(day) { this.wf.setDayDigits(String(day)); }
   drawColon(val) { this.wf.setColon(!!val); }
   drawLap(val) { this.wf.setLap(!!val); }
@@ -47,7 +51,7 @@ class OlleeRuntime {
   drawHR(val) { this.wf.setHr(!!val); }
   drawBell(val) { this.wf.setBell(!!val); }
   drawChime(val) { this.wf.setChime(!!val); }
-  clear() { this.wf.clear(); }
+  clear() { this.wf.clear(); this.wf.setWeekdayDigits(FORGE_MODE_NAME); }
 
   // --- Feedback ---
 
