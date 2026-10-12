@@ -52,6 +52,7 @@ function a_short() {
       showTemp();
       break;
     case 'steps ':
+      Ollee.drawMain(Ollee.steps());
       break; // not implemented yet
     case 'beep ':
       Ollee.beep();

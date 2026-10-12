@@ -40,6 +40,7 @@ class OlleeRuntime {
     this.onUncaughtError = null;
     this._batteryVolts = 2.9;
     this._temperatureC = 23.0;
+    this._steps = 5000;
   }
 
   // --- Drawing ---
@@ -104,6 +105,12 @@ class OlleeRuntime {
     // emulate with a gently drifting value.
     this._temperatureC += (Math.random() - 0.5) * 0.2;
     return Math.round(this._temperatureC * 100) / 100;
+  }
+
+  // Today's step count (sm_pedometer_get_steps on hardware); a fixed
+  // placeholder here since there's no accelerometer to count with.
+  steps() {
+    return this._steps;
   }
 
   battery() {
