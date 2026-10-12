@@ -20,7 +20,7 @@ class WatchFace {
       split: false,
       bell: false,
       chime: false,
-      audio: true,
+      audio: false,
       audioDisabled: false,
       light: false,
       lightDisabled: false,
@@ -145,6 +145,15 @@ class WatchFace {
 
   setMuted(v) { this.state.audioDisabled = !!v; this.render(); }
   toggleMuted() { this.setMuted(!this.state.audioDisabled); }
+
+  // Shows the speaker icon for `ms` while a beep is sounding; a beep that
+  // lands during an earlier one extends it rather than cutting it short.
+  showAudio(ms) {
+    clearTimeout(this._audioTimer);
+    this.state.audio = true;
+    this.render();
+    this._audioTimer = setTimeout(() => { this.state.audio = false; this.render(); }, ms);
+  }
 
   setButtonA(pressed) { this.state.buttonA = pressed; this.render(); }
   setButtonM(pressed) { this.state.buttonM = pressed; this.render(); }

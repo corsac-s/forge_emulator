@@ -20,6 +20,10 @@ const E_UP = 1;
 
 const EJS_TIMER_SLOTS = 4;
 
+// How long the speaker icon stays lit after beep(). Longer than the 80 ms
+// tone itself so it's actually visible; matches the wf-beep-flash animation.
+const BEEP_ICON_MS = 250;
+
 // Static face name the firmware shows on the weekday/mode digits while the
 // Forge face is active (FORGE_MODE_NAME in forge_interpreter.h). Scripts
 // can't change it, and Ollee.clear() restores it.
@@ -66,6 +70,7 @@ class OlleeRuntime {
     }
     this.log('beep()');
     this._flashElement(this.wf.root, 'wf-beep-flash');
+    this.wf.showAudio(BEEP_ICON_MS);
     this._playBeep();
   }
 
