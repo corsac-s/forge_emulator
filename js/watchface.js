@@ -150,6 +150,7 @@ class WatchFace {
   setButtonM(pressed) { this.state.buttonM = pressed; this.render(); }
   setButtonL(pressed) { this.state.buttonL = pressed; this.render(); }
   setTilt(v) { this.state.tilt = v; this.render(); }
+  setTap(v) { this.state.tap = v; this.render(); }
   setLed(on) { this.state.light = on; this.render(); }
 
   render() {

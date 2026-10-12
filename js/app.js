@@ -286,8 +286,8 @@ function runScript(source) {
   watchface.clear();
   ollee = new OlleeRuntime(watchface, log);
 
-  const paramNames = ['Ollee', 'E_A_SHORT', 'E_A_LONG', 'E_L_SHORT', 'E_L_LONG', 'E_TILT', 'E_BUTTONS', 'B_A', 'B_L', 'E_DOWN', 'E_UP', 'console', 'log', 'Date'];
-  const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'button'];
+  const paramNames = ['Ollee', 'E_A_SHORT', 'E_A_LONG', 'E_L_SHORT', 'E_L_LONG', 'E_TILT', 'E_BUTTONS', 'E_TAP', 'B_A', 'B_L', 'E_DOWN', 'E_UP', 'console', 'log', 'Date'];
+  const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'tap', 'button'];
 
   const exportsObj = hookNames.map((n) => `${n}: (typeof ${n} !== 'undefined') ? ${n} : undefined`).join(',\n    ');
   const wrapped = `
@@ -318,7 +318,7 @@ function runScript(source) {
 
   let result;
   try {
-    result = factory(ollee, E_A_SHORT, E_A_LONG, E_L_SHORT, E_L_LONG, E_TILT, E_BUTTONS, B_A, B_L, E_DOWN, E_UP, scriptConsole, log, OlleeDate);
+    result = factory(ollee, E_A_SHORT, E_A_LONG, E_L_SHORT, E_L_LONG, E_TILT, E_BUTTONS, E_TAP, B_A, B_L, E_DOWN, E_UP, scriptConsole, log, OlleeDate);
   } catch (e) {
     logError(`Script error: ${e.message}`);
     setStatus('script error', 'error');
@@ -336,6 +336,7 @@ function runScript(source) {
   if ((subs & E_L_SHORT) && typeof hooks.l_short === 'function') effectiveSubs |= E_L_SHORT;
   if ((subs & E_L_LONG) && typeof hooks.l_long === 'function') effectiveSubs |= E_L_LONG;
   if ((subs & E_TILT) && typeof hooks.tilt === 'function') effectiveSubs |= E_TILT;
+  if ((subs & E_TAP) && typeof hooks.tap === 'function') effectiveSubs |= E_TAP;
   if ((subs & E_BUTTONS) && typeof hooks.button === 'function') effectiveSubs |= E_BUTTONS;
 
   running = true;
@@ -463,8 +464,9 @@ function createModeButton(el, setVisual) {
 
 const buttonM = createModeButton(document.getElementById('btn-m'), (v) => watchface.setButtonM(v));
 
-// Tilt is a momentary button here (rather than a hardware sensor): each
-// press simulates one tilt gesture, firing E_TILT's handler on press-down
+// Tilt and tap are momentary buttons here (rather than a hardware sensor):
+// each press simulates one tilt gesture / triple tap (Event_ACCEL_TRIPLE_TAP),
+// firing E_TILT's or E_TAP's handler on press-down
 // like the A/L buttons do for their own subscriptions.
 function createMomentaryButton({ el, bit, hook, setVisual }) {
   let held = false;
@@ -491,11 +493,17 @@ const buttonTilt = createMomentaryButton({
   setVisual: (v) => watchface.setTilt(v),
 });
 
-// Keyboard wiring: L/M/A/T mirror the on-screen buttons, and unlike a mouse
+const buttonTap = createMomentaryButton({
+  el: document.getElementById('btn-tap'),
+  bit: E_TAP, hook: 'tap',
+  setVisual: (v) => watchface.setTap(v),
+});
+
+// Keyboard wiring: L/M/A/T/P mirror the on-screen buttons, and unlike a mouse
 // (which can only hold one button down at a time) a keyboard can hold
 // several keys at once, so this is how multi-button combos get tested.
 // Ignored while the user is typing in the filename field or script editor.
-const KEY_BUTTON_MAP = { l: buttonL, m: buttonM, a: buttonA, t: buttonTilt };
+const KEY_BUTTON_MAP = { l: buttonL, m: buttonM, a: buttonA, t: buttonTilt, p: buttonTap };
 
 function isEditableTarget(el) {
   return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);

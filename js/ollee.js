@@ -10,6 +10,7 @@ const E_L_SHORT = 1 << 2;
 const E_L_LONG = 1 << 3;
 const E_TILT = 1 << 4;
 const E_BUTTONS = 1 << 5;
+const E_TAP = 1 << 6;
 
 // Values passed to a script's button(btn, event, millis) handler.
 const B_A = 0;

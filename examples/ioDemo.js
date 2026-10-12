@@ -10,7 +10,7 @@
 var ITEMS = ['batt ', 'Tsens', 'steps ', 'beep ', 'Light', 'gest '];
 var item = 0, active = false, useF = false, ledOn = false;
 var tempId = -1, gestId = -1;
-const subscribe = E_A_SHORT + E_L_SHORT + E_TILT;
+const subscribe = E_A_SHORT + E_L_SHORT + E_TILT + E_TAP;
 
 function showItem() {
   Ollee.drawMain(ITEMS[item]);
@@ -79,6 +79,14 @@ function tilt() {
   if (!active || ITEMS[item] !== 'gest ') return;
   if (gestId !== -1) Ollee.clearTimeout(gestId);
   Ollee.drawMain('tilt ');
+  gestId = Ollee.setTimeout('gestReady()', 2000);
+}
+
+function tap() {
+  log("tap");
+  if (!active || ITEMS[item] !== 'gest ') return;
+  if (gestId !== -1) Ollee.clearTimeout(gestId);
+  Ollee.drawMain('tap  ');
   gestId = Ollee.setTimeout('gestReady()', 2000);
 }
 
