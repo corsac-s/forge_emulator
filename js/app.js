@@ -5,6 +5,7 @@
 
 const HOLD_MS_A = 1500; // BUTTON_A_HOLD_PERIOD
 const HOLD_MS_L = 2000; // BUTTON_L_HOLD_PERIOD
+const HOLD_MS_M = 1500; // BUTTON_C_HOLD_PERIOD
 
 const wfRoot = document.getElementById('watchface');
 const watchface = new WatchFace(wfRoot);
@@ -381,7 +382,9 @@ function millisNow() {
 // already held, from OS keyboard auto-repeat or an overlapping mouse event,
 // is a no-op) so mixing input sources can't double-fire a hook or leave the
 // on-screen button stuck lit.
-function createHoldableButton({ el, holdMs, shortBit, shortHook, longBit, longHook, btnConst, setVisual }) {
+// The HOLD icon lights once the hold period elapses whether or not the
+// script subscribes to *_long - it shows the physical hold registering.
+function createHoldableButton({ el, holdMs, shortBit, shortHook, longBit, longHook, btnConst, setVisual, setHold }) {
   let holdTimer = null;
   let held = false;
   function press() {
@@ -389,9 +392,12 @@ function createHoldableButton({ el, holdMs, shortBit, shortHook, longBit, longHo
     held = true;
     setVisual(true);
     if (effectiveSubs & shortBit) runHook(hooks[shortHook], shortHook);
-    if (effectiveSubs & longBit) {
-      holdTimer = setTimeout(() => { if (held) runHook(hooks[longHook], longHook); }, holdMs);
-    }
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      if (!held) return;
+      setHold(true);
+      if (effectiveSubs & longBit) runHook(hooks[longHook], longHook);
+    }, holdMs);
     if (effectiveSubs & E_BUTTONS) runHook(hooks.button, 'button', btnConst, E_DOWN, millisNow());
   }
   function release() {
@@ -399,6 +405,7 @@ function createHoldableButton({ el, holdMs, shortBit, shortHook, longBit, longHo
     held = false;
     setVisual(false);
     if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+    setHold(false);
     if (running && (effectiveSubs & E_BUTTONS)) runHook(hooks.button, 'button', btnConst, E_UP, millisNow());
   }
   el.addEventListener('mousedown', press);
@@ -414,6 +421,7 @@ const buttonA = createHoldableButton({
   longBit: E_A_LONG, longHook: 'a_long',
   btnConst: B_A,
   setVisual: (v) => watchface.setButtonA(v),
+  setHold: (v) => watchface.setButtonHold('A', v),
 });
 
 const buttonL = createHoldableButton({
@@ -423,6 +431,7 @@ const buttonL = createHoldableButton({
   longBit: E_L_LONG, longHook: 'l_long',
   btnConst: B_L,
   setVisual: (v) => watchface.setButtonL(v),
+  setHold: (v) => watchface.setButtonHold('L', v),
 });
 
 // The M (mode) button isn't part of the forge_subscription bitmask - on
@@ -432,12 +441,14 @@ const buttonL = createHoldableButton({
 // home screen (leaving hooks/timers resident, same as sm_forge's ejs[]
 // instances staying loaded while another face is on screen); pressing it
 // again from the home screen re-enters the same face by calling enter().
-function createModeButton(el, setVisual) {
+function createModeButton(el, setVisual, setHold) {
   let held = false;
+  let holdTimer = null;
   function press() {
     if (held) return;
     held = true;
     setVisual(true);
+    holdTimer = setTimeout(() => { holdTimer = null; if (held) setHold(true); }, HOLD_MS_M);
     if (onHomeScreen) {
       if (!hooks) return; // nothing loaded to re-enter
       running = true;
@@ -455,6 +466,8 @@ function createModeButton(el, setVisual) {
     if (!held) return;
     held = false;
     setVisual(false);
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+    setHold(false);
   }
   el.addEventListener('mousedown', press);
   el.addEventListener('mouseup', release);
@@ -462,7 +475,11 @@ function createModeButton(el, setVisual) {
   return { press, release };
 }
 
-const buttonM = createModeButton(document.getElementById('btn-m'), (v) => watchface.setButtonM(v));
+const buttonM = createModeButton(
+  document.getElementById('btn-m'),
+  (v) => watchface.setButtonM(v),
+  (v) => watchface.setButtonHold('M', v),
+);
 
 // Tilt and tap are momentary buttons here (rather than a hardware sensor):
 // each press simulates one tilt gesture / triple tap (Event_ACCEL_TRIPLE_TAP),

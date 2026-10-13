@@ -8,6 +8,7 @@ class WatchFace {
   constructor(rootEl) {
     this.root = rootEl;
     this.layers = new Map();
+    this._heldLong = new Set(); // buttons currently past their hold period
 
     this.state = {
       clockDigits: '',
@@ -158,6 +159,13 @@ class WatchFace {
   setButtonA(pressed) { this.state.buttonA = pressed; this.render(); }
   setButtonM(pressed) { this.state.buttonM = pressed; this.render(); }
   setButtonL(pressed) { this.state.buttonL = pressed; this.render(); }
+  // HOLD icon: lit while any button is held past its hold period. Tracked
+  // per button so releasing one doesn't clear it while another is still held.
+  setButtonHold(btn, held) {
+    if (held) this._heldLong.add(btn); else this._heldLong.delete(btn);
+    this.state.buttonHoldNotTap = this._heldLong.size > 0;
+    this.render();
+  }
   setTilt(v) { this.state.tilt = v; this.render(); }
   setTap(v) { this.state.tap = v; this.render(); }
   setLed(on) { this.state.light = on; this.render(); }
