@@ -42,6 +42,14 @@ h1 { margin: 0 0 4px; font-size: 20px; }
   color: #7eb0e0;
 }
 .panel-label + .watchface { margin-top: 6px; }
+.editor-panel .panel-label { align-self: flex-start; }
+
+.panel-divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid #33363d;
+  margin: 4px 0;
+}
 
 .watchface {
   position: relative;
@@ -170,6 +178,12 @@ select, button {
   cursor: pointer;
 }
 button:disabled { opacity: 0.4; cursor: default; }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 
 .status { margin-left: auto; font-size: 12px; padding: 4px 8px; border-radius: 4px; }
 .status.running { background: #1f3d2b; color: #7ee08a; }

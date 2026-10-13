@@ -33,6 +33,31 @@ function logWarn(msg) {
   logEl.scrollTop = logEl.scrollHeight;
 }
 
+// Wires a "Copy ..." button to put getText()'s result on the clipboard. The
+// label briefly confirms the result since a clipboard write has no visible
+// effect.
+function createCopyButton(btn, getText) {
+  const label = btn.querySelector('span');
+  const idleText = label.textContent;
+  let timer = null;
+  btn.addEventListener('click', async () => {
+    let text;
+    try {
+      await navigator.clipboard.writeText(getText());
+      text = 'Copied!';
+    } catch (e) {
+      text = 'Copy failed';
+    }
+    label.textContent = text;
+    clearTimeout(timer);
+    timer = setTimeout(() => { label.textContent = idleText; }, 1500);
+  });
+}
+
+// Every log line, one per line, as plain text.
+createCopyButton(document.getElementById('copy-log-btn'),
+  () => Array.from(logEl.children, (line) => line.textContent).join('\n'));
+
 let ollee = null;
 let hooks = null;
 let effectiveSubs = 0;
@@ -49,6 +74,10 @@ let onHomeScreen = false;
 
 const editor = document.getElementById('editor');
 const editorMinified = document.getElementById('editor-minified');
+
+// Whichever editor tab is showing - the original or the minified script.
+createCopyButton(document.getElementById('copy-source-btn'),
+  () => (editor.hidden ? editorMinified : editor).value);
 const filenameInput = document.getElementById('filename-input');
 const fileInput = document.getElementById('file-input');
 const loadFileBtn = document.getElementById('load-file-btn');
