@@ -13,8 +13,12 @@
   <div class="layout">
     <div class="face-panel">
       <div class="panel-section">
-        <span class="panel-label">output</span>
+        <div class="panel-header">
+          <span class="panel-label">output</span>
+          <button id="charset-btn" class="charset-btn" type="button" aria-expanded="false" aria-controls="charset-panel">Character set</button>
+        </div>
         <div id="watchface" class="watchface"></div>
+        <div id="charset-panel" class="charset-panel" hidden></div>
       </div>
 
       <div class="panel-section">
@@ -80,6 +84,7 @@
   </div>
 
   <script src="js/lcdChars.js"></script>
+  <script src="js/charSetView.js"></script>
   <script src="js/watchface.js"></script>
   <script src="js/ollee.js"></script>
   <script src="js/vendor/terser.bundle.min.js"></script>

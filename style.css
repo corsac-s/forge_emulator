@@ -41,7 +41,8 @@ h1 { margin: 0 0 4px; font-size: 20px; }
   background: #1f2b3d;
   color: #7eb0e0;
 }
-.panel-label + .watchface { margin-top: 6px; }
+.panel-label + .watchface,
+.panel-header + .watchface { margin-top: 6px; }
 .editor-panel .panel-label { align-self: flex-start; }
 
 .panel-divider {
@@ -217,3 +218,51 @@ button:disabled { opacity: 0.4; cursor: default; }
 .log-line { white-space: pre-wrap; }
 .log-error { color: #e07e7e; }
 .log-warn { color: #e0c07e; }
+
+/* Character set reference panel (js/charSetView.js) */
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.charset-btn { font-size: 12px; padding: 4px 8px; }
+.charset-btn.active { background: #1f2b3d; border-color: #7eb0e0; color: #7eb0e0; }
+
+.charset-panel {
+  width: 320px;
+  margin-top: 6px;
+  padding: 10px;
+  background: #101114;
+  border: 1px solid #33363d;
+  border-radius: 8px;
+}
+.charset-panel[hidden] { display: none; }
+
+.charset-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+.charset-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0 2px;
+  background: #e4e4e4;
+  border-radius: 4px;
+  cursor: default;
+}
+.charset-cell:hover { outline: 2px solid #7eb0e0; }
+.charset-unused { opacity: 0.45; }
+
+.charset-glyph { width: 18px; height: 30px; }
+.charset-glyph line { stroke-width: 2.6; stroke-linecap: round; }
+.charset-glyph .seg-on { stroke: #111; }
+.charset-glyph .seg-off { stroke: rgba(0, 0, 0, 0.07); }
+
+.charset-label {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: #333;
+}
