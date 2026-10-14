@@ -227,17 +227,56 @@ fileInput.addEventListener('change', () => {
 });
 
 // Populates the editor with a starter example on first load, the same way
-// a user's own Load file pick would.
-const DEFAULT_EXAMPLE = 'dice_roller.js';
+// a user's own Load file pick would. Browsers block fetch() when the page is
+// opened from disk (file://), so fall back to an embedded copy of
+// examples/template.js. Keep the two in sync.
+const DEFAULT_EXAMPLE = 'template.js';
+const DEFAULT_EXAMPLE_FALLBACK = `// Template project: a minimal Forge watch face to copy and build on.
+// It shows "hello" on the main display and beeps when A is pressed.
+//
+// Standard functions (all optional, found by their exact top-level name):
+//   init()  - runs once when the script is loaded. Set up state here.
+//   enter() - runs every time the face is shown (after init(), and each
+//             time you come back from the home screen with M). Draw here.
+//   exit()  - runs every time the face is left (M to the home screen).
+//             Stop timers or save state here.
+//
+// Event handlers (a_short, a_long, l_short, l_long, tilt, tap, button)
+// only fire if their E_* bit is set in \`subscribe\` below.
+
+const subscribe = E_A_SHORT;
+
+function init() {
+}
+
+function enter() {
+  Ollee.clear();
+  Ollee.drawMain('hello ');
+}
+
+function exit() {
+}
+
+// A button pressed: beep.
+function a_short() {
+  Ollee.beep();
+}
+`;
+
+function loadDefaultExample(text) {
+  editor.value = text;
+  filenameInput.value = DEFAULT_EXAMPLE;
+  updateTabLabels();
+  warnIfOverByteLimit(text, FORGE_SCRIPT_BYTE_LIMIT_WARNING);
+}
+
 fetch(`examples/${DEFAULT_EXAMPLE}`)
-  .then((res) => res.text())
-  .then((text) => {
-    editor.value = text;
-    filenameInput.value = DEFAULT_EXAMPLE;
-    updateTabLabels();
-    warnIfOverByteLimit(text, FORGE_SCRIPT_BYTE_LIMIT_WARNING);
+  .then((res) => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.text();
   })
-  .catch((e) => logError(`Failed to load default example: ${e.message}`));
+  .then(loadDefaultExample)
+  .catch(() => loadDefaultExample(DEFAULT_EXAMPLE_FALLBACK));
 
 function setStatus(text, cls) {
   statusEl.textContent = text;
