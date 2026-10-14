@@ -26,8 +26,9 @@ const BEEP_ICON_MS = 250;
 
 // Static face name the firmware shows on the weekday/mode digits while the
 // Forge face is active (FORGE_MODE_NAME in forge_interpreter.h). Scripts
-// can't change it, and Ollee.clear() restores it.
-const FORGE_MODE_NAME = 'F1';
+// can't change it, and Ollee.clear() restores it. Slots are lettered: slot 0
+// is 'FA', and future slots will be 'FB', 'FC', 'FD'.
+const FORGE_MODE_NAME = 'FA';
 
 class OlleeRuntime {
   constructor(watchface, log) {
