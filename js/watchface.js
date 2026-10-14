@@ -129,20 +129,24 @@ class WatchFace {
   setLap(v) { this.state.lap = !!v; this.render(); }
   setPm(v) { this.state.pm = !!v; this.render(); }
   setHr(v) { this.state.hr = !!v; this.render(); }
-  setBell(v) { this.state.bell = !!v; this.render(); }
-  setChime(v) { this.state.chime = !!v; this.render(); }
-
-  clear() {
+  // Clears the display. keepBellChime leaves the system-owned bell/chime
+  // indicators alone, as Ollee.clear() does on the watch.
+  clear({ keepBellChime = false } = {}) {
     Object.assign(this.state, {
       clockDigits: '', weekdayDigits: '', dayDigits: '',
       colon: false, pm: false, hr: false, lap: false, split: false,
-      bell: false, chime: false,
     });
+    if (!keepBellChime) Object.assign(this.state, { bell: false, chime: false });
     this.render();
   }
 
   // --- Physical/chrome state (not script-controlled on real hardware,
   // exposed here only so the emulator page can simulate them). ---
+
+  // Bell (alarm) and chime indicators are driven by the system, not by
+  // Forge scripts (there's no Ollee.drawBell/drawChime).
+  setBell(v) { this.state.bell = !!v; this.render(); }
+  setChime(v) { this.state.chime = !!v; this.render(); }
 
   setMuted(v) { this.state.audioDisabled = !!v; this.render(); }
   toggleMuted() { this.setMuted(!this.state.audioDisabled); }

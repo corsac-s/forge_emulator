@@ -57,9 +57,10 @@ class OlleeRuntime {
   drawLap(val) { this.wf.setLap(!!val); }
   drawPM(val) { this.wf.setPm(!!val); }
   drawHR(val) { this.wf.setHr(!!val); }
-  drawBell(val) { this.wf.setBell(!!val); }
-  drawChime(val) { this.wf.setChime(!!val); }
-  clear() { this.wf.clear(); this.wf.setWeekdayDigits(FORGE_MODE_NAME); }
+  // No drawBell/drawChime: the bell and chime indicators belong to the
+  // system (alarm / hourly chime), so scripts can't set them and clear()
+  // leaves them as they are (screen_clear_keep_bell_chime in the firmware).
+  clear() { this.wf.clear({ keepBellChime: true }); this.wf.setWeekdayDigits(FORGE_MODE_NAME); }
 
   // --- Feedback ---
 
