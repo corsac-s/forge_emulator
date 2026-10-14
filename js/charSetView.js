@@ -23,6 +23,16 @@ const CHARSET_SEGMENT_BITS = {
   e: SEGMENT_E, f: SEGMENT_F, g: SEGMENT_G,
 };
 
+// Characters previewed as the character lcd_helper.c substitutes on most
+// plain 7-segment positions (e.g. 'I' is shown as 'l').
+const CHARSET_PREVIEW_SUBSTITUTES = {
+  'I': 'l',
+  'R': 'r',
+  'T': 't',
+  'j': 'J',
+  'u': 'v',
+};
+
 function charSetGlyph(bits) {
   const svg = document.createElementNS(CHARSET_SVG_NS, 'svg');
   svg.setAttribute('viewBox', '0 0 20 34');
@@ -49,7 +59,8 @@ function buildCharSetPanel(panelEl) {
     const cell = document.createElement('div');
     cell.className = 'charset-cell' + (bits === 0 && code !== 0x20 ? ' charset-unused' : '');
     cell.title = `'${ch}'  ${hex}  0b${bits.toString(2).padStart(8, '0')}`;
-    cell.appendChild(charSetGlyph(bits));
+    const previewCh = CHARSET_PREVIEW_SUBSTITUTES[ch] || ch;
+    cell.appendChild(charSetGlyph(LCD_CHARACTER_SET[previewCh.charCodeAt(0) - 0x20]));
     const label = document.createElement('span');
     label.className = 'charset-label';
     label.textContent = code === 0x20 ? 'SP' : ch;
@@ -57,7 +68,12 @@ function buildCharSetPanel(panelEl) {
     grid.appendChild(cell);
   });
 
-  panelEl.appendChild(grid);
+  const note = document.createElement('p');
+  note.className = 'charset-note';
+  note.textContent = 'Not all characters appear the same in every position on the display. '
+    + 'This is a limitation of the LCD segment display. Test first!';
+
+  panelEl.append(grid, note);
 }
 
 (function initCharSetView() {
