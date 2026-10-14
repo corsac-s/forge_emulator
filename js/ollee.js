@@ -119,6 +119,11 @@ class OlleeRuntime {
     return this._steps;
   }
 
+  // Fixed to Toronto; on the watch this is the location the paired phone
+  // set over OAP, stored in thousandths of a degree (so 3 decimal places).
+  latitude() { return 43.653; }
+  longitude() { return -79.383; }
+
   battery() {
     return Math.round(this._batteryVolts * 1000) / 1000;
   }
