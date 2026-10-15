@@ -3,9 +3,9 @@
 // forge_interpreter.c loads a script onto sm_forge0..3: parse top-level
 // enter/exit/init/subscribe + event handlers, run enter() once "loaded".
 
-const HOLD_MS_A = 1500; // BUTTON_A_HOLD_PERIOD
-const HOLD_MS_L = 2000; // BUTTON_L_HOLD_PERIOD
-const HOLD_MS_M = 1500; // BUTTON_C_HOLD_PERIOD
+const HOLD_MS_A = 1000; // BUTTON_A_HOLD_PERIOD
+const HOLD_MS_L = 1500; // BUTTON_L_HOLD_PERIOD
+const HOLD_MS_M = 1000; // BUTTON_C_HOLD_PERIOD
 
 const wfRoot = document.getElementById('watchface');
 const watchface = new WatchFace(wfRoot);
