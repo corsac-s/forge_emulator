@@ -241,7 +241,7 @@ const DEFAULT_EXAMPLE_FALLBACK = `// Template project: a minimal Forge watch fac
 //   exit()  - runs every time the face is left (M to the home screen).
 //             Stop timers or save state here.
 //
-// Event handlers (a_short, a_long, l_short, l_long, tilt, tap, button)
+// Event handlers (a_short, a_long, l_short, l_long, tilt, tap, button, ble_rx)
 // only fire if their E_* bit is set in \`subscribe\` below.
 
 const subscribe = E_A_SHORT;
@@ -354,9 +354,11 @@ function runScript(source) {
 
   watchface.clear();
   ollee = new OlleeRuntime(watchface, log);
+  ollee.bleConnected = () => bleConnectedBox.checked;
+  ollee.onBleNotify = (bytes) => log(`BLE notify -> phone: ${formatBytes(bytes)}`);
 
-  const paramNames = ['Ollee', 'E_A_SHORT', 'E_A_LONG', 'E_L_SHORT', 'E_L_LONG', 'E_TILT', 'E_BUTTONS', 'E_TAP', 'B_A', 'B_L', 'E_DOWN', 'E_UP', 'console', 'log', 'Date'];
-  const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'tap', 'button'];
+  const paramNames = ['Ollee', 'E_A_SHORT', 'E_A_LONG', 'E_L_SHORT', 'E_L_LONG', 'E_TILT', 'E_BUTTONS', 'E_TAP', 'E_BLE_RX', 'B_A', 'B_L', 'E_DOWN', 'E_UP', 'console', 'log', 'Date'];
+  const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'tap', 'button', 'ble_rx'];
 
   const exportsObj = hookNames.map((n) => `${n}: (typeof ${n} !== 'undefined') ? ${n} : undefined`).join(',\n    ');
   const wrapped = `
@@ -387,7 +389,7 @@ function runScript(source) {
 
   let result;
   try {
-    result = factory(ollee, E_A_SHORT, E_A_LONG, E_L_SHORT, E_L_LONG, E_TILT, E_BUTTONS, E_TAP, B_A, B_L, E_DOWN, E_UP, scriptConsole, log, OlleeDate);
+    result = factory(ollee, E_A_SHORT, E_A_LONG, E_L_SHORT, E_L_LONG, E_TILT, E_BUTTONS, E_TAP, E_BLE_RX, B_A, B_L, E_DOWN, E_UP, scriptConsole, log, OlleeDate);
   } catch (e) {
     logError(`Script error: ${e.message}`);
     setStatus('script error', 'error');
@@ -407,6 +409,7 @@ function runScript(source) {
   if ((subs & E_TILT) && typeof hooks.tilt === 'function') effectiveSubs |= E_TILT;
   if ((subs & E_TAP) && typeof hooks.tap === 'function') effectiveSubs |= E_TAP;
   if ((subs & E_BUTTONS) && typeof hooks.button === 'function') effectiveSubs |= E_BUTTONS;
+  if ((subs & E_BLE_RX) && typeof hooks.ble_rx === 'function') effectiveSubs |= E_BLE_RX;
 
   running = true;
   onHomeScreen = false;
@@ -583,6 +586,48 @@ const buttonTap = createMomentaryButton({
   bit: E_TAP, hook: 'tap',
   setVisual: (v) => watchface.setTap(v),
 });
+
+// --- Phone side of the Forge BLE service (forge_ble.c): the text box plays
+// a BLE app like nRF Connect writing to the RX characteristic. One Send is
+// one GATT write, so it must fit in FORGE_BLE_MAX_DATA_LEN bytes - the stack
+// rejects longer writes to the characteristic. A write that arrives while
+// the face isn't active, or doesn't subscribe to E_BLE_RX, is dropped
+// (forge_ble_rx_tick flushes messages no face took). ---
+
+const bleInput = document.getElementById('ble-input');
+const bleSendBtn = document.getElementById('ble-send-btn');
+const bleConnectedBox = document.getElementById('ble-connected');
+
+// Printable ASCII as-is, everything else as \xNN, so binary data is
+// readable in the log.
+function formatBytes(bytes) {
+  const shown = Array.from(bytes, (c) => {
+    const code = c.charCodeAt(0);
+    if (code >= 0x20 && code < 0x7f && c !== '"' && c !== '\\') return c;
+    return '\\x' + code.toString(16).padStart(2, '0');
+  }).join('');
+  return `"${shown}"`;
+}
+
+function bleWrite() {
+  // Typed text goes out UTF-8 encoded, like nRF Connect's text mode
+  const bytes = Array.from(new TextEncoder().encode(bleInput.value), (b) => String.fromCharCode(b)).join('');
+  if (!bleConnectedBox.checked) { logWarn('BLE write: phone not connected'); return; }
+  if (bytes.length === 0) return;
+  if (bytes.length > FORGE_BLE_MAX_DATA_LEN) {
+    logWarn(`BLE write: ${bytes.length} bytes is over the ${FORGE_BLE_MAX_DATA_LEN}-byte limit, not sent`);
+    return;
+  }
+  log(`BLE write -> watch: ${formatBytes(bytes)}`);
+  if (!running || faceDisabled || !(effectiveSubs & E_BLE_RX)) {
+    log('(dropped: no active face subscribed to E_BLE_RX)');
+    return;
+  }
+  runHook(hooks.ble_rx, 'ble_rx', bytes);
+}
+
+bleSendBtn.addEventListener('click', bleWrite);
+bleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') bleWrite(); });
 
 // Keyboard wiring: L/M/A/T/P mirror the on-screen buttons, and unlike a mouse
 // (which can only hold one button down at a time) a keyboard can hold

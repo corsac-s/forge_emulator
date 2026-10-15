@@ -11,6 +11,7 @@ const E_L_LONG = 1 << 3;
 const E_TILT = 1 << 4;
 const E_BUTTONS = 1 << 5;
 const E_TAP = 1 << 6;
+const E_BLE_RX = 1 << 7;
 
 // Values passed to a script's button(btn, event, millis) handler.
 const B_A = 0;
@@ -19,6 +20,21 @@ const E_DOWN = 0;
 const E_UP = 1;
 
 const EJS_TIMER_SLOTS = 4;
+
+// Forge BLE service limits (forge_ble.h): bytes per GATT write/notification,
+// and bytes Ollee.send() can have waiting to go out.
+const FORGE_BLE_MAX_DATA_LEN = 20;
+const FORGE_BLE_TX_BUF_SIZE = 256;
+
+// Converts a string to the bytes the firmware would send or receive, as a
+// "binary string" (one char per byte, 0-255) like Espruino uses. A string
+// already made of 0-255 char codes (e.g. one ble_rx() received) is taken
+// byte-for-byte; anything else is UTF-8 encoded, matching how non-ASCII text
+// in a script's source reaches the watch.
+function toByteString(str) {
+  if (/^[\x00-\xff]*$/.test(str)) return str;
+  return Array.from(new TextEncoder().encode(str), (b) => String.fromCharCode(b)).join('');
+}
 
 // How long the speaker icon stays lit after beep(). Longer than the 80 ms
 // tone itself so it's actually visible; matches the wf-beep-flash animation.
@@ -46,6 +62,10 @@ class OlleeRuntime {
     this._batteryVolts = 2.9;
     this._temperatureC = 23.0;
     this._steps = 5000;
+    // Whether the emulated phone is connected (the "phone connected" box),
+    // and where Ollee.send()'s notifications go - both set by app.js.
+    this.bleConnected = () => true;
+    this.onBleNotify = null;
   }
 
   // --- Drawing ---
@@ -127,6 +147,25 @@ class OlleeRuntime {
 
   battery() {
     return Math.round(this._batteryVolts * 1000) / 1000;
+  }
+
+  // --- Forge BLE service (jswrap_ollee_send / forge_ble.c) ---
+
+  // Whether a phone is connected (jswrap_ollee_connected), driven by the
+  // "phone connected" box.
+  connected() {
+    return !!this.bleConnected();
+  }
+
+  // Sends as FORGE_BLE_MAX_DATA_LEN-byte notifications. The emulator sends
+  // them instantly, so the 256-byte TX buffer only limits a single call.
+  send(data) {
+    const bytes = toByteString(String(data));
+    if (!this.connected() || bytes.length === 0 || bytes.length > FORGE_BLE_TX_BUF_SIZE) return false;
+    for (let i = 0; i < bytes.length; i += FORGE_BLE_MAX_DATA_LEN) {
+      if (this.onBleNotify) this.onBleNotify(bytes.slice(i, i + FORGE_BLE_MAX_DATA_LEN));
+    }
+    return true;
   }
 
   get tz_offset() {

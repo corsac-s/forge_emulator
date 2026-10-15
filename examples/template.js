@@ -8,7 +8,7 @@
 //   exit()  - runs every time the face is left (M to the home screen).
 //             Stop timers or save state here.
 //
-// Event handlers (a_short, a_long, l_short, l_long, tilt, tap, button)
+// Event handlers (a_short, a_long, l_short, l_long, tilt, tap, button, ble_rx)
 // only fire if their E_* bit is set in `subscribe` below.
 
 const subscribe = E_A_SHORT;

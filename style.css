@@ -120,6 +120,24 @@ h1 { margin: 0 0 4px; font-size: 20px; }
 
 .phys-btn-tilt { font-size: 11px; }
 
+.ble-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.ble-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  background: #101114;
+  color: #e6e6e6;
+  border: 1px solid #33363d;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.ble-connected { font-size: 13px; color: #9aa0a6; }
+
 .editor-panel {
   flex: 1;
   min-width: 420px;
