@@ -21,6 +21,9 @@ const E_UP = 1;
 
 const EJS_TIMER_SLOTS = 4;
 
+// E_* bits Ollee.subscribe accepts (FORGE_BG_EVENTS in forge_interpreter.h)
+const FORGE_BG_EVENTS = E_BLE_RX;
+
 // Forge BLE service limits (forge_ble.h): bytes per GATT write/notification,
 // and bytes Ollee.send() can have waiting to go out.
 const FORGE_BLE_MAX_DATA_LEN = 20;
@@ -66,23 +69,51 @@ class OlleeRuntime {
     // and where Ollee.send()'s notifications go - both set by app.js.
     this.bleConnected = () => true;
     this.onBleNotify = null;
+    // Whether the face is on screen - set by app.js
+    this.isActive = () => true;
+    // E_* bits subscribed with Ollee.subscribe (background delivery)
+    this.bgSubs = 0;
   }
 
-  // --- Drawing ---
+  // --- Face state / background events (forge_slot_is_active,
+  // forge_bg_subscribe in forge_interpreter.c) ---
+
+  active() { return !!this.isActive(); }
+
+  subscribe(events) {
+    events = Number(events) | 0;
+    if (events === 0 || (events & ~FORGE_BG_EVENTS)) return false;
+    this.bgSubs |= events;
+    return true;
+  }
+
+  unsubscribe(events) {
+    events = Number(events) | 0;
+    if (events === 0 || (events & ~FORGE_BG_EVENTS)) return false;
+    this.bgSubs &= ~events;
+    return true;
+  }
+
+  // --- Drawing (ignored while the face isn't on screen, since another
+  // face owns the display) ---
 
   // Right-aligned on the 6 clock digits, matching the firmware's
   // jswrap_ollee_draw_main (first 6 chars kept, then left-padded).
-  drawMain(clock) { this.wf.setClockDigits(String(clock).slice(0, 6).padStart(6, ' ')); }
+  drawMain(clock) { if (this.active()) this.wf.setClockDigits(String(clock).slice(0, 6).padStart(6, ' ')); }
   // Right-aligned on the 2 day digits the same way (jswrap_ollee_draw_day).
-  drawDay(day) { this.wf.setDayDigits(String(day).slice(0, 2).padStart(2, ' ')); }
-  drawColon(val) { this.wf.setColon(!!val); }
-  drawLap(val) { this.wf.setLap(!!val); }
-  drawPM(val) { this.wf.setPm(!!val); }
-  drawHR(val) { this.wf.setHr(!!val); }
+  drawDay(day) { if (this.active()) this.wf.setDayDigits(String(day).slice(0, 2).padStart(2, ' ')); }
+  drawColon(val) { if (this.active()) this.wf.setColon(!!val); }
+  drawLap(val) { if (this.active()) this.wf.setLap(!!val); }
+  drawPM(val) { if (this.active()) this.wf.setPm(!!val); }
+  drawHR(val) { if (this.active()) this.wf.setHr(!!val); }
   // No drawBell/drawChime: the bell and chime indicators belong to the
   // system (alarm / hourly chime), so scripts can't set them and clear()
   // leaves them as they are (screen_clear_keep_bell_chime in the firmware).
-  clear() { this.wf.clear({ keepBellChime: true }); this.wf.setWeekdayDigits(FORGE_MODE_NAME); }
+  clear() {
+    if (!this.active()) return;
+    this.wf.clear({ keepBellChime: true });
+    this.wf.setWeekdayDigits(FORGE_MODE_NAME);
+  }
 
   // --- Feedback ---
 

@@ -297,7 +297,10 @@ function reportUncaughtError(e, label) {
   logError('Uncaught error, face would be disabled on watch');
   faceDisabled = true;
   effectiveSubs = 0;
-  if (ollee) ollee._clearSlot(undefined); // a blocked face shouldn't keep ticking
+  if (ollee) {
+    ollee._clearSlot(undefined); // a blocked face shouldn't keep ticking
+    ollee.bgSubs = 0; // or keep getting background events (forge_script_failed)
+  }
   setStatus('disabled', 'error');
 }
 
@@ -340,6 +343,9 @@ function showHomeScreen() {
   if (running) {
     runHook(hooks && hooks.exit, 'exit');
     running = false;
+    // sm_forge0_exit cancels the face's timers (cancel_all_ejs_exec);
+    // background subscriptions (Ollee.subscribe) stay
+    if (ollee) ollee._clearSlot(undefined);
   }
   onHomeScreen = true;
   updateButtons();
@@ -356,6 +362,8 @@ function runScript(source) {
   ollee = new OlleeRuntime(watchface, log);
   ollee.bleConnected = () => bleConnectedBox.checked;
   ollee.onBleNotify = (bytes) => log(`BLE notify -> phone: ${formatBytes(bytes)}`);
+  // running is false on the home screen and while init() runs
+  ollee.isActive = () => running;
 
   const paramNames = ['Ollee', 'E_A_SHORT', 'E_A_LONG', 'E_L_SHORT', 'E_L_LONG', 'E_TILT', 'E_BUTTONS', 'E_TAP', 'E_BLE_RX', 'B_A', 'B_L', 'E_DOWN', 'E_UP', 'console', 'log', 'Date'];
   const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'tap', 'button', 'ble_rx'];
@@ -411,14 +419,16 @@ function runScript(source) {
   if ((subs & E_BUTTONS) && typeof hooks.button === 'function') effectiveSubs |= E_BUTTONS;
   if ((subs & E_BLE_RX) && typeof hooks.ble_rx === 'function') effectiveSubs |= E_BLE_RX;
 
+  log('-- face loaded --');
+  // On the watch init() runs at upload/boot, before the face is entered,
+  // so Ollee.active() is false and its draw calls are ignored
+  runHook(hooks.init, 'init');
+
   running = true;
   onHomeScreen = false;
   updateButtons();
-  setStatus('running', 'running');
-  log('-- face loaded --');
+  if (!faceDisabled) setStatus('running', 'running');
   log('-- face entered --');
-
-  runHook(hooks.init, 'init');
   watchface.setWeekdayDigits(FORGE_MODE_NAME);
   runHook(hooks.enter, 'enter');
 }
@@ -590,9 +600,10 @@ const buttonTap = createMomentaryButton({
 // --- Phone side of the Forge BLE service (forge_ble.c): the text box plays
 // a BLE app like nRF Connect writing to the RX characteristic. One Send is
 // one GATT write, so it must fit in FORGE_BLE_MAX_DATA_LEN bytes - the stack
-// rejects longer writes to the characteristic. A write that arrives while
-// the face isn't active, or doesn't subscribe to E_BLE_RX, is dropped
-// (forge_ble_rx_tick flushes messages no face took). ---
+// rejects longer writes to the characteristic. A write reaches ble_rx() if
+// the face is on screen with E_BLE_RX in `subscribe`, or at any time after
+// Ollee.subscribe(E_BLE_RX) (forge_ble_rx_dispatch); otherwise it's
+// dropped (forge_ble_rx_tick flushes messages nobody took). ---
 
 const bleInput = document.getElementById('ble-input');
 const bleSendBtn = document.getElementById('ble-send-btn');
@@ -619,10 +630,13 @@ function bleWrite() {
     return;
   }
   log(`BLE write -> watch: ${formatBytes(bytes)}`);
-  if (!running || faceDisabled || !(effectiveSubs & E_BLE_RX)) {
-    log('(dropped: no active face subscribed to E_BLE_RX)');
+  const foreground = running && (effectiveSubs & E_BLE_RX);
+  const background = ollee && (ollee.bgSubs & E_BLE_RX);
+  if (!hooks || faceDisabled || !(foreground || background)) {
+    log('(dropped: not subscribed to E_BLE_RX, or the face is not on screen)');
     return;
   }
+  if (!running) log('(delivered in the background)');
   runHook(hooks.ble_rx, 'ble_rx', bytes);
 }
 
