@@ -78,6 +78,54 @@ const editorMinified = document.getElementById('editor-minified');
 // Whichever editor tab is showing - the original or the minified script.
 createCopyButton(document.getElementById('copy-source-btn'),
   () => (editor.hidden ? editorMinified : editor).value);
+// Tab / Shift+Tab indent and outdent inside the editors instead of moving
+// focus. A caret or single-line selection gets INDENT inserted; a selection
+// spanning lines indents/outdents every line it touches.
+const INDENT = '  ';
+
+function replaceEditorRange(ta, start, end, text) {
+  ta.focus();
+  ta.setSelectionRange(start, end);
+  // execCommand keeps the edit on the browser's undo stack; setRangeText doesn't.
+  if (!document.execCommand('insertText', false, text)) {
+    ta.setRangeText(text, start, end, 'end');
+  }
+}
+
+function handleEditorTab(e) {
+  if (e.key !== 'Tab' || e.ctrlKey || e.altKey || e.metaKey) return;
+  e.preventDefault();
+  const ta = e.target;
+  const { value, selectionStart: start, selectionEnd: end } = ta;
+  const selected = value.slice(start, end);
+  if (!e.shiftKey && !selected.includes('\n')) {
+    replaceEditorRange(ta, start, end, INDENT);
+    return;
+  }
+  const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+  // A selection ending right after a newline doesn't touch the next line.
+  const blockEnd = end > start && value[end - 1] === '\n' ? end - 1 : end;
+  const lineEnd = value.indexOf('\n', blockEnd);
+  const blockStop = lineEnd === -1 ? value.length : lineEnd;
+  const lines = value.slice(lineStart, blockStop).split('\n');
+  const deltas = lines.map((line) => {
+    if (!e.shiftKey) return INDENT.length;
+    if (line.startsWith('\t')) return -1;
+    return -Math.min(line.match(/^ */)[0].length, INDENT.length);
+  });
+  const newLines = lines.map((line, i) =>
+    deltas[i] > 0 ? INDENT + line : line.slice(-deltas[i]));
+  const totalDelta = deltas.reduce((a, b) => a + b, 0);
+  if (totalDelta === 0) return;
+  replaceEditorRange(ta, lineStart, blockStop, newLines.join('\n'));
+  // Shift the selection with its text, but keep a line-start anchor in place.
+  const newStart = start === lineStart ? start : Math.max(lineStart, start + deltas[0]);
+  ta.setSelectionRange(newStart, Math.max(newStart, end + totalDelta));
+}
+
+editor.addEventListener('keydown', handleEditorTab);
+editorMinified.addEventListener('keydown', handleEditorTab);
+
 const filenameInput = document.getElementById('filename-input');
 const fileInput = document.getElementById('file-input');
 const loadFileBtn = document.getElementById('load-file-btn');
