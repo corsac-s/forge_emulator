@@ -16,8 +16,8 @@ function showConnection() {
   var c = Ollee.connected();
   if (c === wasConnected) return;
   wasConnected = c;
-  Ollee.drawPM(c);
-  Ollee.drawMain(c ? 'ble   ' : 'no ble');
+  Ollee.drawLap(c);
+  Ollee.drawMain(c ? 'ble' : 'no ble');
 }
 
 function enter() {

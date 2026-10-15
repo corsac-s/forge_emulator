@@ -73,7 +73,8 @@ class OlleeRuntime {
   // Right-aligned on the 6 clock digits, matching the firmware's
   // jswrap_ollee_draw_main (first 6 chars kept, then left-padded).
   drawMain(clock) { this.wf.setClockDigits(String(clock).slice(0, 6).padStart(6, ' ')); }
-  drawDay(day) { this.wf.setDayDigits(String(day)); }
+  // Right-aligned on the 2 day digits the same way (jswrap_ollee_draw_day).
+  drawDay(day) { this.wf.setDayDigits(String(day).slice(0, 2).padStart(2, ' ')); }
   drawColon(val) { this.wf.setColon(!!val); }
   drawLap(val) { this.wf.setLap(!!val); }
   drawPM(val) { this.wf.setPm(!!val); }
