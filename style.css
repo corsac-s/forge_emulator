@@ -136,6 +136,7 @@ h1 { margin: 0 0 4px; font-size: 20px; }
   padding: 6px 10px;
   font-size: 13px;
 }
+.ble-tx-label { font-size: 13px; color: #9aa0a6; }
 .ble-connected { font-size: 13px; color: #9aa0a6; }
 
 .editor-panel {
