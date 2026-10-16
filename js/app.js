@@ -142,7 +142,7 @@ const statusEl = document.getElementById('status');
 // forge_script_record_t's storage on real hardware bounds a script to this
 // many bytes - kept as a single constant here so the limit (and its
 // warning message) can be updated in one place if the firmware's limit changes.
-const FORGE_SCRIPT_BYTE_LIMIT = 2054;
+const FORGE_SCRIPT_BYTE_LIMIT = 8158;
 const FORGE_SCRIPT_BYTE_LIMIT_WARNING = `Forge faces currently have a limit of ${FORGE_SCRIPT_BYTE_LIMIT} bytes. You may be able to minify this script to meet the limit.`;
 const FORGE_SCRIPT_MINIFIED_BYTE_LIMIT_WARNING = `Forge faces currently have a limit of ${FORGE_SCRIPT_BYTE_LIMIT} bytes . This minified script is too large.`;
 
