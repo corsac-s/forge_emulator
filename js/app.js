@@ -289,8 +289,9 @@ const DEFAULT_EXAMPLE_FALLBACK = `// Template project: a minimal Forge watch fac
 //   exit()  - runs every time the face is left (M to the home screen).
 //             Stop timers or save state here.
 //
-// Event handlers (a_short, a_long, l_short, l_long, tilt, tap, button, ble_rx)
-// only fire if their E_* bit is set in \`subscribe\` below.
+// Event handlers (a_short, a_long, l_short, l_long, tilt, tap, button, ble_rx,
+// clock_minute, clock_hour) only fire if their E_* bit is set in \`subscribe\`
+// below.
 
 const subscribe = E_A_SHORT;
 
@@ -413,8 +414,8 @@ function runScript(source) {
   // running is false on the home screen and while init() runs
   ollee.isActive = () => running;
 
-  const paramNames = ['Ollee', 'E_A_SHORT', 'E_A_LONG', 'E_L_SHORT', 'E_L_LONG', 'E_TILT', 'E_BUTTONS', 'E_TAP', 'E_BLE_RX', 'B_A', 'B_L', 'E_DOWN', 'E_UP', 'console', 'log', 'Date'];
-  const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'tap', 'button', 'ble_rx'];
+  const paramNames = ['Ollee', 'E_A_SHORT', 'E_A_LONG', 'E_L_SHORT', 'E_L_LONG', 'E_TILT', 'E_BUTTONS', 'E_TAP', 'E_BLE_RX', 'E_CLOCK_MINUTE', 'E_CLOCK_HOUR', 'B_A', 'B_L', 'E_DOWN', 'E_UP', 'console', 'log', 'Date'];
+  const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'tap', 'button', 'ble_rx', 'clock_minute', 'clock_hour'];
 
   const exportsObj = hookNames.map((n) => `${n}: (typeof ${n} !== 'undefined') ? ${n} : undefined`).join(',\n    ');
   const wrapped = `
@@ -445,7 +446,7 @@ function runScript(source) {
 
   let result;
   try {
-    result = factory(ollee, E_A_SHORT, E_A_LONG, E_L_SHORT, E_L_LONG, E_TILT, E_BUTTONS, E_TAP, E_BLE_RX, B_A, B_L, E_DOWN, E_UP, scriptConsole, log, OlleeDate);
+    result = factory(ollee, E_A_SHORT, E_A_LONG, E_L_SHORT, E_L_LONG, E_TILT, E_BUTTONS, E_TAP, E_BLE_RX, E_CLOCK_MINUTE, E_CLOCK_HOUR, B_A, B_L, E_DOWN, E_UP, scriptConsole, log, OlleeDate);
   } catch (e) {
     logError(`Script error: ${e.message}`);
     setStatus('script error', 'error');
@@ -466,6 +467,8 @@ function runScript(source) {
   if ((subs & E_TAP) && typeof hooks.tap === 'function') effectiveSubs |= E_TAP;
   if ((subs & E_BUTTONS) && typeof hooks.button === 'function') effectiveSubs |= E_BUTTONS;
   if ((subs & E_BLE_RX) && typeof hooks.ble_rx === 'function') effectiveSubs |= E_BLE_RX;
+  if ((subs & E_CLOCK_MINUTE) && typeof hooks.clock_minute === 'function') effectiveSubs |= E_CLOCK_MINUTE;
+  if ((subs & E_CLOCK_HOUR) && typeof hooks.clock_hour === 'function') effectiveSubs |= E_CLOCK_HOUR;
 
   log('-- face loaded --');
   // On the watch init() runs at upload/boot, before the face is entered,
@@ -690,6 +693,52 @@ function bleWrite() {
 
 bleSendBtn.addEventListener('click', bleWrite);
 bleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') bleWrite(); });
+
+// --- Clock ticks (forge_clock_dispatch): the watch's RTC fires
+// Event_ALARM_MINUTE at each new minute, then Event_ALARM_HOURLY on the hour
+// (alarm_helper.c). They reach clock_minute()/clock_hour() while the face is
+// running with the bit in `subscribe`, or at any time after Ollee.subscribe;
+// otherwise they're skipped. Real ticks follow the host's local clock, the
+// same one OlleeDate reads. The Minute/Hour tick buttons fire one right away
+// for testing, without changing the time `new Date()` returns. ---
+
+// Runs `hook` if the script should get this tick. Returns whether it did.
+function deliverClock(bit, hook) {
+  const foreground = running && (effectiveSubs & bit);
+  const background = ollee && (ollee.bgSubs & bit);
+  if (!hooks || faceDisabled || !(foreground || background)) return false;
+  runHook(hooks[hook], hook);
+  return true;
+}
+
+function clockTick(onHour, manual) {
+  const minute = deliverClock(E_CLOCK_MINUTE, 'clock_minute');
+  // A failing clock_minute() disables the face before clock_hour() runs
+  const hour = onHour && deliverClock(E_CLOCK_HOUR, 'clock_hour');
+  if (minute || hour) {
+    log(`clock tick:${minute ? ' clock_minute()' : ''}${hour ? ' clock_hour()' : ''}${running ? '' : ' (background)'}`);
+  } else if (manual) {
+    log(`(${onHour ? 'hour' : 'minute'} tick dropped: not subscribed, or the face is not on screen)`);
+  }
+}
+
+function scheduleClockTick() {
+  const now = OlleeDate.now();
+  setTimeout(() => {
+    clockTick(new OlleeDate().getMinutes() === 0, false);
+    scheduleClockTick();
+  }, 60000 - (now % 60000));
+}
+scheduleClockTick();
+
+document.getElementById('clock-minute-btn').addEventListener('click', () => {
+  log('Minute tick');
+  clockTick(false, true);
+});
+document.getElementById('clock-hour-btn').addEventListener('click', () => {
+  log('Hour tick');
+  clockTick(true, true);
+});
 
 // Keyboard wiring: L/M/A/T/P mirror the on-screen buttons, and unlike a mouse
 // (which can only hold one button down at a time) a keyboard can hold

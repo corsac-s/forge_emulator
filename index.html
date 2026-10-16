@@ -42,6 +42,15 @@
         </div>
         <label class="ble-connected"><input type="checkbox" id="ble-connected" checked> phone connected</label>
       </div>
+
+      <div class="panel-section">
+        <span class="panel-label">Clock</span>
+        <div class="clock-row">
+          <button id="clock-minute-btn" type="button" title="Fire E_CLOCK_MINUTE now (the time new Date() returns doesn't change)">Minute tick</button>
+          <button id="clock-hour-btn" type="button" title="Fire E_CLOCK_MINUTE then E_CLOCK_HOUR now, as on the hour (the time new Date() returns doesn't change)">Hour tick</button>
+        </div>
+        <span class="clock-note">Real ticks also fire at each minute and hour of this computer's clock.</span>
+      </div>
     </div>
 
     <div class="editor-panel">

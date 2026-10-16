@@ -139,6 +139,13 @@ h1 { margin: 0 0 4px; font-size: 20px; }
 .ble-tx-label { font-size: 13px; color: #9aa0a6; }
 .ble-connected { font-size: 13px; color: #9aa0a6; }
 
+.clock-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.clock-note { font-size: 13px; color: #9aa0a6; }
+
 .editor-panel {
   flex: 1;
   min-width: 420px;
