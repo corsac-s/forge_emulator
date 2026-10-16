@@ -6,12 +6,14 @@
 <link rel="icon" href="ow-forge-icon.ico" type="image/x-icon">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<!-- Feature switch: set data-minify="on" to show the Minify, Save minified
+     script and Run minified buttons and the minified source tab. -->
+<body data-minify="off">
   <h1 class="title">
     <img src="ollee-forge-logo-dark.png" alt="Ollee Forge" class="title-logo">
     <span>Emulator</span>
   </h1>
-  <p class="subtitle">Ollee Watch Forge emulator - load, edit, run and test Ollee Watch Forge watchface scripts.<br>Minification done with <a href="https://github.com/terser/terser">Terser</a></p>
+  <p class="subtitle">Ollee Watch Forge emulator - load, edit, run and test Ollee Watch Forge watchface scripts.<br>Visit the <a href="https://github.com/olleewatch/forge_emulator">Ollee Watch Forge</a> GitHub for instructions.<br>Minification done with <a href="https://github.com/terser/terser">Terser</a>.</p>
 
   <div class="layout">
     <div class="face-panel">
@@ -36,7 +38,7 @@
       <div class="panel-section">
         <span class="panel-label">Bluetooth</span>
         <div class="ble-row">
-          <label for="ble-input" class="ble-tx-label">TX</label>
+          <label for="ble-input" class="ble-tx-label">RX</label>
           <input type="text" id="ble-input" placeholder="write to watch (max 20 bytes)" aria-label="Data to write to the watch">
           <button id="ble-send-btn" type="button">Send</button>
         </div>
@@ -63,12 +65,12 @@
         <input type="file" id="file-input" accept=".js,.txt" hidden>
         <button id="load-file-btn">Load file</button>
         <button id="save-file-btn">Save script</button>
-        <button id="minify-btn">Minify</button>
-        <button id="save-minified-btn">Save minified script</button>
+        <button id="minify-btn" class="minify-feature">Minify</button>
+        <button id="save-minified-btn" class="minify-feature">Save minified script</button>
       </div>
       <div class="toolbar">
         <button id="run-btn">Run</button>
-        <button id="run-minified-btn">Run minified</button>
+        <button id="run-minified-btn" class="minify-feature">Run minified</button>
         <button id="stop-btn">Stop</button>
         <span id="status" class="status"></span>
       </div>
@@ -76,7 +78,7 @@
       <span class="panel-label">source</span>
       <div class="editor-tabs">
         <button class="tab-btn active" id="tab-original" type="button"></button>
-        <button class="tab-btn" id="tab-minified" type="button"></button>
+        <button class="tab-btn minify-feature" id="tab-minified" type="button"></button>
       </div>
       <textarea id="editor" spellcheck="false"></textarea>
       <textarea id="editor-minified" spellcheck="false" hidden></textarea>
