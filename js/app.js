@@ -151,6 +151,25 @@ function warnIfOverByteLimit(text, message) {
   if (byteLength > FORGE_SCRIPT_BYTE_LIMIT) logWarn(message);
 }
 
+// Size bar under the editor: UTF-8 bytes of whichever tab is showing,
+// against FORGE_SCRIPT_BYTE_LIMIT. Setting a textarea's .value doesn't fire
+// 'input', so code that does must call this itself.
+const sizeMeter = document.querySelector('.size-meter');
+const sizeMeterFill = document.getElementById('size-meter-fill');
+const sizeMeterText = document.getElementById('size-meter-text');
+
+function updateSizeMeter() {
+  const text = (editor.hidden ? editorMinified : editor).value;
+  const byteLength = new TextEncoder().encode(text).length;
+  const pct = (byteLength / FORGE_SCRIPT_BYTE_LIMIT) * 100;
+  sizeMeterFill.style.width = `${Math.min(pct, 100)}%`;
+  sizeMeterText.textContent = `${byteLength} / ${FORGE_SCRIPT_BYTE_LIMIT} bytes (${Math.round(pct)}%)`;
+  sizeMeter.classList.toggle('over', byteLength > FORGE_SCRIPT_BYTE_LIMIT);
+}
+editor.addEventListener('input', updateSizeMeter);
+editorMinified.addEventListener('input', updateSizeMeter);
+updateSizeMeter();
+
 function getFileName() {
   return filenameInput.value.trim() || 'untitled.js';
 }
@@ -170,6 +189,7 @@ function setActiveTab(tab) {
   tabMinified.classList.toggle('active', tab === 'minified');
   editor.hidden = tab !== 'original';
   editorMinified.hidden = tab !== 'minified';
+  updateSizeMeter();
 }
 tabOriginal.addEventListener('click', () => setActiveTab('original'));
 tabMinified.addEventListener('click', async () => {
@@ -209,6 +229,7 @@ async function minifyNow() {
   }
   editorMinified.value = result.code;
   minifiedSourceSnapshot = source;
+  updateSizeMeter();
   warnIfOverByteLimit(result.code, FORGE_SCRIPT_BYTE_LIMIT_WARNING);
   return true;
 }
@@ -267,7 +288,7 @@ fileInput.addEventListener('change', () => {
     editor.value = text;
     filenameInput.value = file.name;
     updateTabLabels();
-    setActiveTab('original');
+    setActiveTab('original'); // also refreshes the size bar
     warnIfOverByteLimit(text, FORGE_SCRIPT_BYTE_LIMIT_WARNING);
   };
   reader.readAsText(file);
@@ -316,6 +337,7 @@ function loadDefaultExample(text) {
   editor.value = text;
   filenameInput.value = DEFAULT_EXAMPLE;
   updateTabLabels();
+  updateSizeMeter();
   warnIfOverByteLimit(text, FORGE_SCRIPT_BYTE_LIMIT_WARNING);
 }
 

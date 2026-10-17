@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <!-- Feature switch: set data-minify="on" to show the Minify, Save minified
-     script and Run minified buttons and the minified source tab. -->
+     script and Run minified buttons. -->
 <body data-minify="off">
   <h1 class="title">
     <img src="ollee-forge-logo-dark.png" alt="Ollee Forge" class="title-logo">
@@ -78,10 +78,14 @@
       <span class="panel-label">source</span>
       <div class="editor-tabs">
         <button class="tab-btn active" id="tab-original" type="button"></button>
-        <button class="tab-btn minify-feature" id="tab-minified" type="button"></button>
+        <button class="tab-btn" id="tab-minified" type="button"></button>
       </div>
       <textarea id="editor" spellcheck="false"></textarea>
       <textarea id="editor-minified" spellcheck="false" hidden></textarea>
+      <div class="size-meter">
+        <div class="size-meter-track"><div id="size-meter-fill" class="size-meter-fill"></div></div>
+        <span id="size-meter-text" class="size-meter-text"></span>
+      </div>
       <div class="toolbar">
         <button id="copy-source-btn" class="icon-btn" type="button">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
