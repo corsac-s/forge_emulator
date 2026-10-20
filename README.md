@@ -5,8 +5,10 @@
 
 # Ollee Watch Forge (Beta 1)
 
-Build custom watchfaces for the Ollee Watch. Code them yourself or with an AI agent,
-test them in the browser emulator, and load them onto your watch.
+Build custom watchfaces for the Ollee Watch in plain JavaScript. The watch runs a
+JavaScript interpreter, so your script runs on it as-is: no compiling, no SDK, no
+toolchain to install. Write a short script against the simple `Ollee` API (by hand
+or with an AI agent), test it in this browser emulator, then upload it to your watch.
 
 Status:
 - **Beta 1**: Emulator support only. Deploying to the watch will be in Beta 2.
@@ -29,6 +31,8 @@ Status:
 
 ## Community
 Feedback, questions, bugs, and share your examples: [Discussions](../../discussions)
+
+Join the discussion in the Forge channel on the [Ollee Watch Discord](https://discord.gg/BsTnx7YcKm).
 
 ## License
 
