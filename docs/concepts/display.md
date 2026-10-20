@@ -5,15 +5,7 @@ segments and icons, so a face is mostly digits and simple text.
 
 ## Layout
 
-```
-  ┌──────────────────────────────┐
-  │  FA        19                │   weekday (0-1)   day (2-3)
-  │                              │
-  │      1 2 : 3 4  5 6          │   clock (4-9)
-  │                              │
-  │  LAP  PM  HR  bell  chime    │   indicators
-  └──────────────────────────────┘
-```
+<img src="watchface-display-doc.png" height="300" alt="Ollee Watch display: the face name FA on the weekday digits, the day digits 2-3 at the top right, and the clock/main digits 4-9 below">
 
 | Area | Positions | How you draw it |
 | --- | --- | --- |
@@ -21,7 +13,7 @@ segments and icons, so a face is mostly digits and simple text.
 | Day digits | 2–3 | `Ollee.drawDay(text)`: 2 characters |
 | Clock digits | 4–9 | `Ollee.drawMain(text)`: 6 characters |
 | Colon | | `Ollee.drawColon(on)` |
-| LAP, PM, HR | | `Ollee.drawLap(on)`, `Ollee.drawPM(on)`, `Ollee.drawHR(on)` |
+| LAP, PM, 24H | | `Ollee.drawLap(on)`, `Ollee.drawPM(on)`, `Ollee.drawHR(on)` |
 | Bell, chime | | You can't. They show the system alarm and hourly chime. |
 
 ## Drawing text
@@ -56,24 +48,7 @@ while another face is showing). See [Lifecycle](lifecycle.md).
 
 ## What characters look like
 
-Each digit has 7 segments, so:
-
-- **Digits 0–9** look right everywhere.
-- **Many letters work**, in upper or lower case: `A b C d E F G H J L n o P q r
-  S t U y` and others. The display picks whichever form it can draw, so
-  `'R'` shows as `r` and `'T'` as `t` on these digits.
-- **Some letters can't be drawn** on the day or clock digits: `M`, `W`, `K`,
-  `X`, `V`, `Z` and `I` are approximations at best.
-- **Symbols:** `-` (and `.`, which also draws a dash), `_`, `=`, `#` (degree
-  sign), `"`, `'`, `[` `]`, `?`. `:` and `%` draw nothing. Use `drawColon` for
-  the colon.
-- `{` `|` `}` draw two narrow letters in one digit: `il`, `ll` and `li`.
+- Open the **Character set** panel in the emulator to see all of the characters that are encoded
 - The first hour digit and first minute digit (positions 4 and 6) have a
   different segment layout and remap some characters, for example `L` and `7`.
-
-**Open the emulator's Character set panel** to see exactly how every character
-looks in each position. When a word won't fit or doesn't read well, use a short
-code instead: `on`/`oFF`, `bAtt`, `Lo`/`Hi`.
-
-There's no decimal point. [examples/location.js](../../examples/location.js)
-uses a dash in its place.
+- The first day digit (position 2) does not contain all seven segments, so many characters don't work on it. Stick to the numbers `1` through `3` for this position.
