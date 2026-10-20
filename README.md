@@ -5,7 +5,7 @@
 
 # Ollee Watch Forge (Beta 1)
 
-Build custom watchfaces for Ollee Watch. Code them yourself or with an AI agent,
+Build custom watchfaces for the Ollee Watch. Code them yourself or with an AI agent,
 test them in the browser emulator, and load them onto your watch.
 
 Status:
@@ -28,7 +28,7 @@ Status:
 - 📖 [All docs](docs/index.md)
 
 ## Community
-Questions and show-and-tell: [Discussions](../../discussions)
+Feedback, questions, bugs, and share your examples: [Discussions](../../discussions)
 
 ## License
 

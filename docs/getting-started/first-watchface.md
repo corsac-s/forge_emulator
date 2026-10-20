@@ -1,7 +1,7 @@
 # Your first watchface
 
-In this tutorial you'll build a tally counter: **A** counts up, **L** resets,
-and holding **A** counts up by 10. Along the way you'll use the main ideas
+In this tutorial you'll build a tally counter: Button **A** counts up, button **L** resets,
+and holding button **A** counts up by 10. Along the way you'll use the main ideas
 behind every Forge face.
 
 Have the emulator open first ([install](install.md)).
