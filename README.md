@@ -16,7 +16,7 @@ Status:
 <!-- TODO: screenshot or GIF of the emulator running a watchface -->
 
 ## Quickstart
-1. Clone the repository `git clone https://github.com/olleewatch/forge_emulator`
+1. Clone the repository `git clone https://github.com/olleewatch/forge_emulator` or download the .zip package.
 2. Open `index.html`
 3. Click **Run**. The template face loads by default. Edit it in the browser,
    or use **Load file** to open one of the [examples](examples/).
