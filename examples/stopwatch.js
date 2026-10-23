@@ -9,21 +9,20 @@ var running = false;
 var timer = -1;
 
 var sw = 0;
-var startedAt = -1;
 var exitedAt = -1;
 
 function init() {
 }
 
 function enter() {
-  log("enter(): running=" + running + " timer=" + timer + " sw=" + sw + " startedAt=" + startedAt);
+  log("enter(): running=" + running + " timer=" + timer + " sw=" + sw + " exitedAt=" + exitedAt);
   if(running) {
     var now = new Date();
     var elapsed = now - exitedAt;
     sw += elapsed;
     timer = Ollee.setInterval('tick()', 10);
   }
-  log("enter(2): running=" + running + " timer=" + timer + " sw=" + sw + " startedAt=" + startedAt);
+  log("enter(): running=" + running + " timer=" + timer + " sw=" + sw + " exitedAt=" + exitedAt);
   Ollee.clear();
   draw();
 }
@@ -58,46 +57,43 @@ function draw() {
 }
 
 function exit() {
-  log("exit(): running=" + running + " sw=" + sw + " startedAt=" + startedAt);
+  log("exit(): running=" + running + " sw=" + sw + " exitedAt=" + exitedAt);
   exitedAt = new Date();
 
 }
 
 function tick() {
   sw +=10;
-  log(sw);
   draw();
 }
 
 function start() {
-  log("start()");
   running = true;
-  startedAt = new Date()
   timer = Ollee.setInterval('tick()', 10);
   draw();
-  log("started");
+  log("exit(): running=" + running + " sw=" + sw);
 }
 
 function stop() {
   running = false;
   Ollee.clearInterval(timer)
   draw();
-  log("stopped");
+  log("stop(): running=" + running + " sw=" + sw);
 }
 // A button pressed: start/stop the stopwatch
 function a_short() {
-  log("running=" + running);
+  log("a_short(): running=")
   if(running)
     stop();
   else
     start();
-  log("end");
+  log("a_short(): running=")
 }
 
 // L button pressed: reset the stopwatch
 function l_short() {
+  log("l_short(): sw=" + sw);
   sw = 0;
   display = {};
   draw();
-  log("reset");
 }
