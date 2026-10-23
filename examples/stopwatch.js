@@ -24,13 +24,20 @@ var timer = -1;
 var sw = 0;
 var sec = 0;
 var hour = 0;
+var startedAt = -1;
 
 function init() {
 }
 
 function enter() {
+  log("enter(): running=" + running + " timer=" + timer + " sw=" + sw + " startedAt=" + startedAt);
+  if(running) {
+    var now = new Date();
+    sw = now - startedAt;
+    timer = Ollee.setInterval('tick()', 10);
+  }
+  log("enter(2): running=" + running + " timer=" + timer + " sw=" + sw + " startedAt=" + startedAt);
   Ollee.clear();
-  log(timer);
   draw();
 }
 
@@ -43,6 +50,7 @@ function draw() {
 }
 
 function exit() {
+  log("exit(): running=" + running + " sw=" + sw + " startedAt=" + startedAt);
 }
 
 function tick() {
@@ -60,7 +68,9 @@ function tick() {
 }
 
 function start() {
+  log("start()");
   running = true;
+  startedAt = new Date()
   timer = Ollee.setInterval('tick()', 10);
   draw();
   log("started");
@@ -74,10 +84,12 @@ function stop() {
 }
 // A button pressed: start/stop the stopwatch
 function a_short() {
+  log("running=" + running);
   if(running)
-    stop()
+    stop();
   else
-    start()
+    start();
+  log("end");
 }
 
 // L button pressed: reset the stopwatch
