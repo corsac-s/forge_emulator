@@ -364,7 +364,7 @@ function updateButtons() {
 // itself - matches forge_script_exec_bounded disabling a face on error on
 // real hardware (see forge_status_t: S_VALID -> S_BLOCKED).
 function reportUncaughtError(e, label) {
-  logError(`${label}() error: ${e.message}`);
+  logError(`${label}() error: ${scriptErrorMessage(e)}`);
   logError('Uncaught error, face would be disabled on watch');
   faceDisabled = true;
   effectiveSubs = 0;
@@ -426,6 +426,41 @@ function showHomeScreen() {
   log('-- home screen --');
 }
 
+// Globals the firmware's Espruino build has (jswSymbols_global_str in
+// espruino_embedded.c), plus `undefined`. Anything else a browser defines -
+// setTimeout/setInterval (the watch only has Ollee.setTimeout etc.),
+// window, document, Map, Promise, fetch... - is a ReferenceError on the watch.
+const FIRMWARE_GLOBALS = new Set([
+  'Array', 'ArrayBuffer', 'ArrayBufferView', 'B_A', 'B_L', 'Boolean', 'DataView', 'Date',
+  'E_A_LONG', 'E_A_SHORT', 'E_BLE_RX', 'E_BUTTONS', 'E_CLOCK_HOUR', 'E_CLOCK_MINUTE', 'E_DOWN',
+  'E_L_LONG', 'E_L_SHORT', 'E_TAP', 'E_TILT', 'E_UP', 'Error', 'Float32Array', 'Float64Array',
+  'Function', 'HIGH', 'Infinity', 'Int16Array', 'Int32Array', 'Int8Array', 'InternalError', 'JSON',
+  'LOW', 'Math', 'Modules', 'NaN', 'Number', 'Object', 'Ollee', 'ReferenceError', 'RegExp', 'String',
+  'SyntaxError', 'TypeError', 'Uint16Array', 'Uint24Array', 'Uint32Array', 'Uint8Array',
+  'Uint8ClampedArray', 'arguments', 'atob', 'btoa', 'console', 'decodeURIComponent',
+  'encodeURIComponent', 'eval', 'global', 'globalThis', 'isFinite', 'isNaN', 'log', 'parseFloat',
+  'parseInt', 'print', 'require', 'trace', 'undefined',
+]);
+
+// Every identifier reachable as a bare global in this browser that the
+// firmware doesn't define, other than the names runScript passes in.
+function browserOnlyGlobals(exclude) {
+  const names = new Set();
+  for (let o = globalThis; o && o !== Object.prototype; o = Object.getPrototypeOf(o)) {
+    for (const n of Object.getOwnPropertyNames(o)) names.add(n);
+  }
+  return [...names].filter((n) => /^[A-Za-z_$][\w$]*$/.test(n) &&
+    !FIRMWARE_GLOBALS.has(n) && !exclude.includes(n));
+}
+
+// Reports a use of one of the browserOnlyGlobals the way Espruino does
+// ("Uncaught ReferenceError: "clearInterval" is not defined") rather than
+// as the browser's uninitialized-`let` error.
+function scriptErrorMessage(e) {
+  const m = e instanceof ReferenceError && /'([\w$]+)'.*before initialization/.exec(e.message);
+  return m ? `ReferenceError: "${m[1]}" is not defined` : e.message;
+}
+
 function runScript(source) {
   teardownFace(running);
 
@@ -440,7 +475,12 @@ function runScript(source) {
   const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'tap', 'button', 'ble_rx', 'clock_minute', 'clock_hour'];
 
   const exportsObj = hookNames.map((n) => `${n}: (typeof ${n} !== 'undefined') ? ${n} : undefined`).join(',\n    ');
-  const wrapped = `
+  // The script runs in an inner function, and every browser-only global is
+  // declared with a `let` after the `return`, so it's never initialized:
+  // using one throws a ReferenceError (rewritten by scriptErrorMessage to the
+  // firmware's wording) instead of silently reaching window.setInterval etc.
+  const wrapped = `{
+    return (function () {
     ${source}
     ;
     var __forge_exports = {
@@ -449,7 +489,9 @@ function runScript(source) {
     };
     var __forge_eval = function(__code) { return eval(__code); };
     return { exports: __forge_exports, evalInScope: __forge_eval };
-  `;
+    })();
+    let ${browserOnlyGlobals(paramNames).join(', ')};
+  }`;
 
   const scriptConsole = {
     log: (...args) => log(args.map(String).join(' ')),
@@ -470,7 +512,7 @@ function runScript(source) {
   try {
     result = factory(ollee, E_A_SHORT, E_A_LONG, E_L_SHORT, E_L_LONG, E_TILT, E_BUTTONS, E_TAP, E_BLE_RX, E_CLOCK_MINUTE, E_CLOCK_HOUR, B_A, B_L, E_DOWN, E_UP, scriptConsole, log, OlleeDate);
   } catch (e) {
-    logError(`Script error: ${e.message}`);
+    logError(`Script error: ${scriptErrorMessage(e)}`);
     setStatus('script error', 'error');
     return;
   }

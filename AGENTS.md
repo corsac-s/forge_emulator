@@ -26,10 +26,13 @@ browser.
 - **Draw in `enter()`, not `init()`.** `init()` runs at upload/boot, before the
   face is on screen, and draw calls are ignored then (and whenever
   `Ollee.active()` is false).
-- **Timers:** use `Ollee.setTimeout`/`Ollee.setInterval`, not the globals.
-  They share **4 slots** and return `-1` when they're all used. Leaving the face
-  cancels them, so restart them in `enter()` and reset your stored ids in
-  `exit()`.
+- **Timers:** use `Ollee.setTimeout`/`Ollee.setInterval` and
+  `Ollee.clearTimeout`/`Ollee.clearInterval`. The watch has no global
+  `setTimeout`/`setInterval`/`clearTimeout`/`clearInterval`, so calling those is
+  a ReferenceError. They share **4 slots** and return `-1` when they're all
+  used. Leaving the face cancels them, so restart them in `enter()` and reset
+  your stored ids in `exit()`. `Ollee.clearInterval(null)` (or with no id)
+  cancels *all* of the script's timers, so only clear an id you actually hold.
 - **An uncaught error disables the face** on the watch. Wrap risky code in
   `try`/`catch`.
 - **Size limit: 8158 bytes** (UTF-8). Keep scripts small. Minification never
@@ -41,8 +44,12 @@ browser.
   slot name (`FA`, `FB` or `FC`) and scripts can't draw there.
 - **`Date` has no timezone.** `new Date()` gives the watch's wall-clock time
   directly; `getTimezoneOffset()` is 0.
+- **Only the watch's globals exist.** Browser globals (`window`, `document`,
+  `fetch`) and built-ins the firmware lacks (`Map`, `Set`, `Promise`, `Symbol`)
+  throw a ReferenceError on the watch, and the emulator throws the same error.
+  The watch's globals are listed in `FIRMWARE_GLOBALS` in `js/app.js`.
 - Use ES5-style code (`var`, `function`) when in doubt. Espruino doesn't support
-  every modern JS feature, and the emulator won't catch that.
+  every modern JS syntax feature, and the emulator won't catch that.
 
 Start from [examples/template.js](examples/template.js), or a closer example in
 [examples/](examples/).
