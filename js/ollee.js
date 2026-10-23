@@ -183,7 +183,20 @@ class OlleeRuntime {
     this.log('beep()');
     this._flashElement(this.wf.root, 'wf-beep-flash');
     this.wf.showAudio(BEEP_ICON_MS);
-    this._playBeep();
+    this._playBeep(2048);
+  }
+
+  // buzzer_beep_very_short: same length as beep(), but an LPTIM period of 8
+  // instead of 16 ticks, so about 4 kHz rather than 2 kHz.
+  beepShort() {
+    if (this.wf.state.audioDisabled) {
+      this.log('muted beepShort()');
+      return;
+    }
+    this.log('beepShort()');
+    this._flashElement(this.wf.root, 'wf-beep-flash');
+    this.wf.showAudio(BEEP_ICON_MS);
+    this._playBeep(4096);
   }
 
   led_on() { this.wf.setLed(true); this.log('led_on()'); }
@@ -196,12 +209,12 @@ class OlleeRuntime {
     el.classList.add(cls);
   }
 
-  _playBeep() {
+  _playBeep(frequency) {
     try {
       const ctx = OlleeRuntime._audioCtx || (OlleeRuntime._audioCtx = new (window.AudioContext || window.webkitAudioContext)());
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.frequency.value = 2000;
+      osc.frequency.value = frequency;
       gain.gain.value = 0.05;
       osc.connect(gain).connect(ctx.destination);
       osc.start();

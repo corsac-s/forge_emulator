@@ -3,14 +3,14 @@
 //   batt  - battery voltage in mV (A again refreshes)
 //   temp  - temperature, sampled every second; A again toggles #C / #F
 //   steps - not implemented yet
-//   beep  - A beeps the buzzer
+//   beep  - A beeps the buzzer; holding A also plays the very short beep
 //   light - A toggles the LED, shows on/off
 //   gest  - waits for a tilt, shows "tilt" for 2 s, then "ready" again
 // Leaving an item (L) or the face (M) stops its timers and turns the LED off.
 var ITEMS = ['batt ', 'Tsens', 'steps ', 'beep ', 'Light', 'gest '];
 var item = 0, active = false, useF = false, ledOn = false;
 var tempId = -1, gestId = -1;
-const subscribe = E_A_SHORT + E_L_SHORT + E_TILT + E_TAP;
+const subscribe = E_A_SHORT + E_A_LONG + E_L_SHORT + E_TILT + E_TAP;
 
 function showItem() {
   Ollee.drawMain(ITEMS[item]);
@@ -67,6 +67,12 @@ function a_short() {
       if (first) gestReady();
       break;
   }
+}
+
+// a_short has already fired (and beeped) on the press, so a hold sounds
+// beep, then beepShort once A has been held for 1 s.
+function a_long() {
+  if (active && ITEMS[item] === 'beep ') Ollee.beepShort();
 }
 
 function l_short() {

@@ -86,6 +86,7 @@ All draw calls do nothing while `Ollee.active()` is `false`. See
 | Call | Does |
 | --- | --- |
 | `Ollee.beep()` | Short beep. Silent if the watch is muted. |
+| `Ollee.beepShort()` | Very short beep. Silent if the watch is muted. |
 | `Ollee.led_on()` | Turns the LED on (stays on) |
 | `Ollee.led_off()` | Turns the LED off |
 
