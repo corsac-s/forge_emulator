@@ -62,7 +62,10 @@ function msToTime(duration) {
 function draw() {
   let display = msToTime(sw);
 
-  Ollee.drawMain(pad(display["minutes"]) + pad(display["seconds"]) + pad(display["centiseconds"]));
+  if(display["hours"])
+    Ollee.drawMain(pad(display["hours"]) + pad(display["minutes"]) + pad(display["seconds"]));
+  else
+    Ollee.drawMain(pad(display["minutes"]) + pad(display["seconds"]) + pad(display["centiseconds"]));
 }
 
 function exit() {
