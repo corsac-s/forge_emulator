@@ -82,18 +82,17 @@ function stop() {
 }
 // A button pressed: start/stop the stopwatch
 function a_short() {
-  log("a_short(): running=")
+  log("a_short(): running=" + running)
   if(running)
     stop();
   else
     start();
-  log("a_short(): running=")
+  log("a_short(): running=" + running)
 }
 
 // L button pressed: reset the stopwatch
 function l_short() {
   log("l_short(): sw=" + sw);
   sw = 0;
-  display = {};
   draw();
 }
