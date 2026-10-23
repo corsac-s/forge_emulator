@@ -22,8 +22,6 @@ var running = false;
 var timer = -1;
 
 var sw = 0;
-var sec = 0;
-var hour = 0;
 var startedAt = -1;
 
 function init() {
@@ -45,8 +43,26 @@ function pad(n) {
   return ('0' + n).slice(-2);
 }
 
+function msToTime(duration) {
+  let display = {}
+  var centiseconds = Math.floor((duration % 1000) / 10),
+    seconds = Math.floor((duration / 1000) % 60),
+    minutes = Math.floor((duration / (1000 * 60)) % 60),
+    hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+
+  display["hours"] = hours;
+  display["minutes"] = minutes;
+  display["seconds"] = seconds;
+  display["centiseconds"] = centiseconds;
+
+  return display;
+}
+
+
 function draw() {
-  Ollee.drawMain(pad(hour) + pad(sec) + pad(sw));
+  let display = msToTime(sw);
+
+  Ollee.drawMain(pad(display["minutes"]) + pad(display["seconds"]) + pad(display["centiseconds"]));
 }
 
 function exit() {
@@ -54,17 +70,9 @@ function exit() {
 }
 
 function tick() {
-  sw +=1;
-  if (sw && (sw % 100 == 0)) {
-    sec+=1;
-    log("sec=" + sec + " sw=" + sw)
-  }
-  if (sec && (sec % 60 == 0)) {
-    sec=0;
-    hour+=1;
-    log("hour=" + hour + " sec=" + sec + " sw=" + sw)
-  }
-  draw()
+  sw +=10;
+  log(sw);
+  draw();
 }
 
 function start() {
