@@ -41,6 +41,62 @@ function toByteString(str) {
   return Array.from(new TextEncoder().encode(str), (b) => String.fromCharCode(b)).join('');
 }
 
+// Flattens an Ollee.hmacSha1 argument to bytes the way the firmware's
+// jsvIterateBufferCallback does: a string is its bytes (see toByteString),
+// a number is one byte, and arrays/typed arrays are walked element by
+// element. Anything else is a TypeError, as on the watch.
+function toHmacBytes(v, out) {
+  if (typeof v === 'number' || typeof v === 'boolean') {
+    out.push(Number(v) & 255);
+  } else if (typeof v === 'string') {
+    const s = toByteString(v);
+    for (let i = 0; i < s.length; i++) out.push(s.charCodeAt(i));
+  } else if (ArrayBuffer.isView(v)) {
+    for (let i = 0; i < v.length; i++) out.push(Number(v[i]) & 255);
+  } else if (Array.isArray(v)) {
+    v.forEach((el) => toHmacBytes(el, out));
+  } else {
+    throw new TypeError(`Expecting Number or iterable, got ${v === null ? 'null' : typeof v}`);
+  }
+  return out;
+}
+
+function sha1Bytes(bytes) {
+  const h = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
+  const m = bytes.slice();
+  const bits = bytes.length * 8;
+  m.push(0x80);
+  while (m.length % 64 !== 56) m.push(0);
+  // 64-bit big-endian bit length (the high word only matters past 512 MB)
+  const hi = Math.floor(bits / 0x100000000);
+  m.push(hi >>> 24, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255,
+    bits >>> 24, (bits >>> 16) & 255, (bits >>> 8) & 255, bits & 255);
+  const w = new Array(80);
+  for (let o = 0; o < m.length; o += 64) {
+    for (let i = 0; i < 16; i++) {
+      w[i] = (m[o + 4 * i] << 24) | (m[o + 4 * i + 1] << 16) | (m[o + 4 * i + 2] << 8) | m[o + 4 * i + 3];
+    }
+    for (let i = 16; i < 80; i++) {
+      const t = w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16];
+      w[i] = (t << 1) | (t >>> 31);
+    }
+    let [a, b, c, d, e] = h;
+    for (let i = 0; i < 80; i++) {
+      const f = i < 20 ? ((b & c) | (~b & d)) + 0x5A827999
+        : i < 40 ? (b ^ c ^ d) + 0x6ED9EBA1
+        : i < 60 ? ((b & c) | (b & d) | (c & d)) + 0x8F1BBCDC
+        : (b ^ c ^ d) + 0xCA62C1D6;
+      const t = (((a << 5) | (a >>> 27)) + e + w[i] + f) | 0;
+      e = d; d = c; c = (b << 30) | (b >>> 2); b = a; a = t;
+    }
+    h[0] = (h[0] + a) | 0; h[1] = (h[1] + b) | 0; h[2] = (h[2] + c) | 0;
+    h[3] = (h[3] + d) | 0; h[4] = (h[4] + e) | 0;
+  }
+  const out = [];
+  for (let i = 0; i < 20; i++) out.push((h[i >> 2] >>> (24 - 8 * (i & 3))) & 255);
+  return out;
+}
+
 // How long the speaker icon stays lit after beep(). Longer than the 80 ms
 // tone itself so it's actually visible; matches the wf-beep-flash animation.
 const BEEP_ICON_MS = 250;
@@ -159,6 +215,22 @@ class OlleeRuntime {
 
   hwRand() {
     return Math.floor(Math.random() * (0xEFFF + 1));
+  }
+
+  // HMAC-SHA1 (jswrap_ollee_hmac_sha1). Native and effectively instant on
+  // the watch, so it's synchronous here too rather than using WebCrypto.
+  hmacSha1(key, message) {
+    let k = toHmacBytes(key, []);
+    const msg = toHmacBytes(message, []);
+    if (k.length > 64) k = sha1Bytes(k);
+    while (k.length < 64) k.push(0);
+    const inner = sha1Bytes(k.map((b) => b ^ 0x36).concat(msg));
+    return new Uint8Array(sha1Bytes(k.map((b) => b ^ 0x5C).concat(inner)));
+  }
+
+  // Plain SHA-1 (jswrap_ollee_sha1). Takes bytes the same way as hmacSha1.
+  sha1(data) {
+    return new Uint8Array(sha1Bytes(toHmacBytes(data, [])));
   }
 
   temperature() {
