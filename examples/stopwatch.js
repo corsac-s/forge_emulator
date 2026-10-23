@@ -7,9 +7,11 @@ const subscribe = E_A_SHORT + E_L_SHORT;
 
 var running = false;
 var timer = -1;
+var colon = -1;
 
 var sw = 0;
 var exitedAt = -1;
+var colonOn = true;
 
 function init() {
 }
@@ -21,9 +23,11 @@ function enter() {
     var elapsed = now - exitedAt;
     sw += elapsed;
     timer = Ollee.setInterval('tick()', 10);
+    colon = Ollee.setInterval(toggleColon, 500);
   }
   log("enter(): running=" + running + " timer=" + timer + " sw=" + sw + " exitedAt=" + exitedAt);
   Ollee.clear();
+  Ollee.drawColon(1);
   draw();
 }
 
@@ -62,6 +66,17 @@ function exit() {
 
 }
 
+function toggleColon() {
+  if (colonOn) {
+    colonOn=false;
+    Ollee.drawColon(0);
+  } else {
+    colonOn=true;
+    Ollee.drawColon(1);
+  }
+  return colonOn;
+}
+
 function tick() {
   sw +=10;
   draw();
@@ -70,6 +85,7 @@ function tick() {
 function start() {
   running = true;
   timer = Ollee.setInterval('tick()', 10);
+  colon = Ollee.setInterval(toggleColon, 500);
   draw();
   log("exit(): running=" + running + " sw=" + sw);
 }
@@ -77,7 +93,10 @@ function start() {
 function stop() {
   running = false;
   Ollee.clearInterval(timer)
+  Ollee.clearInterval(colon)
   draw();
+  Ollee.drawColon(1);
+  colonOn=true;
   log("stop(): running=" + running + " sw=" + sw);
 }
 // A button pressed: start/stop the stopwatch
