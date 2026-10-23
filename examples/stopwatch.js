@@ -2,19 +2,6 @@
 //
 // Press A to start and stop the stopwatch
 // Press L to reset
-// Template project: a minimal Forge watch face to copy and build on.
-// It shows "hello" on the main display and beeps when A is pressed.
-//
-// Standard functions (all optional, found by their exact top-level name):
-//   init()  - runs once when the script is loaded. Set up state here.
-//   enter() - runs every time the face is shown (after init(), and each
-//             time you come back from the home screen with M). Draw here.
-//   exit()  - runs every time the face is left (M to the home screen).
-//             Stop timers or save state here.
-//
-// Event handlers (a_short, a_long, l_short, l_long, tilt, tap, button, ble_rx,
-// clock_minute, clock_hour) only fire if their E_* bit is set in `subscribe`
-// below.
 
 const subscribe = E_A_SHORT + E_L_SHORT;
 
@@ -23,6 +10,7 @@ var timer = -1;
 
 var sw = 0;
 var startedAt = -1;
+var exitedAt = -1;
 
 function init() {
 }
@@ -31,7 +19,8 @@ function enter() {
   log("enter(): running=" + running + " timer=" + timer + " sw=" + sw + " startedAt=" + startedAt);
   if(running) {
     var now = new Date();
-    sw = now - startedAt;
+    var elapsed = now - exitedAt;
+    sw += elapsed;
     timer = Ollee.setInterval('tick()', 10);
   }
   log("enter(2): running=" + running + " timer=" + timer + " sw=" + sw + " startedAt=" + startedAt);
@@ -70,6 +59,8 @@ function draw() {
 
 function exit() {
   log("exit(): running=" + running + " sw=" + sw + " startedAt=" + startedAt);
+  exitedAt = new Date();
+
 }
 
 function tick() {
@@ -105,7 +96,8 @@ function a_short() {
 
 // L button pressed: reset the stopwatch
 function l_short() {
-  sw = sec = hour = 0;
+  sw = 0;
+  display = {};
   draw();
   log("reset");
 }
