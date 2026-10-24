@@ -2,6 +2,8 @@
 //
 // Press A to start and stop the stopwatch
 // Press L to reset
+// © 2026 Yves-Alexis Perez <corsac@corsac.net>
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 const subscribe = E_A_SHORT + E_L_SHORT;
 
