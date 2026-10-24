@@ -4,6 +4,9 @@
 // Press L to reset
 // © 2026 Yves-Alexis Perez <corsac@corsac.net>
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// TODO:
+// - use drawDay() to count the days (not that it's really useful)
+// - reduce interval to 1s once we switch to hour mode
 
 const subscribe = E_A_SHORT + E_L_SHORT;
 
