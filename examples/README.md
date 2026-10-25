@@ -13,4 +13,4 @@ Load any of these in the emulator with **Load file**, then click **Run**.
 | [chime.js](chime.js) | A clock driven by `clock_minute()`, and a background `clock_hour()` chime via `Ollee.subscribe` |
 | [bleEcho.js](bleEcho.js) | Two-way Bluetooth with a phone app |
 | [bleInbox.js](bleInbox.js) | Receiving Bluetooth messages in the background |
-| [otp.js](otp.js) | TOTP/HOTP authenticator (RFC 6238/4226) built on `Ollee.hmacSha1()` |
+| [otp.js](totp.js) | TOTP/HOTP authenticator (RFC 6238/4226) built on `Ollee.hmacSha1()` |
