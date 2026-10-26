@@ -2,13 +2,20 @@
 // Day mode (default): days left, right-aligned on the main digits, and
 // "d" on the day digits.
 // Press A to toggle time mode: HH:MM:SS left in the current day, "t" on
-// the day digits, ticking every second.
+// the day digits, refreshed every second.
 // Press L to edit the target: L steps through year -> month -> day -> done.
 // A increments the blinking field; hold A to increment every 250 ms.
+//
+// To save power, a timer only runs while something on screen changes faster
+// than once an hour: in time mode, and while editing. Day mode has no timer;
+// clock_hour() redraws it, so the day count still rolls over at midnight.
+// Time mode uses a 1000 ms interval rather than E_CLOCK_SECOND: whole-second
+// intervals run on the low-power RTC scheduler too, and unlike a `subscribe`
+// bit the interval can be stopped in day mode.
 
 // Target: year, month (0-11), day, hour, minute, second
 var TARGET = new Date(2026, 11, 25, 0, 0, 0);   // 25 Dec 2026
-const subscribe = E_A_SHORT + E_A_LONG + E_L_SHORT + E_BUTTONS;
+const subscribe = E_A_SHORT + E_A_LONG + E_L_SHORT + E_BUTTONS + E_CLOCK_HOUR;
 
 var timeMode = false;
 var timer = -1;
@@ -75,21 +82,36 @@ function inc() {
   draw();
 }
 
-// Runs every 250 ms: fast-increments while A is held, blinks the edited
-// field every 500 ms, and refreshes the countdown every second.
+// Runs every 250 ms while editing: fast-increments while A is held, and
+// blinks the edited field every 500 ms.
 function tick() {
   ticks++;
-  if (field >= 0) {
-    if (fast) inc();
-    else if (ticks % 2 == 0) { blinkOn = !blinkOn; draw(); }
-  } else if (ticks % 4 == 0) {
-    draw();
-  }
+  if (fast) inc();
+  else if (ticks % 2 == 0) { blinkOn = !blinkOn; draw(); }
+}
+
+function stopTimer() {
+  if (timer >= 0) Ollee.clearInterval(timer);
+  timer = -1;
+}
+
+// Starts the timer the current mode needs, if any: tick() every 250 ms while
+// editing, draw() every second in time mode, none in day mode.
+function updateTimer() {
+  stopTimer();
+  if (field >= 0) timer = Ollee.setInterval('tick()', 250);
+  else if (timeMode) timer = Ollee.setInterval('draw()', 1000);
+}
+
+// Day mode's only refresh. Midnight is on the hour, so this catches the
+// day count changing.
+function clock_hour() {
+  draw();
 }
 
 function a_short() {
   if (field >= 0) inc();
-  else { timeMode = !timeMode; draw(); }
+  else { timeMode = !timeMode; updateTimer(); draw(); }
 }
 
 function a_long() {
@@ -118,19 +140,22 @@ function l_short() {
   }
   blinkOn = true;
   ticks = 0;
+  // Entering edit mode starts the 250 ms tick; leaving it goes back to the
+  // display mode's timer (or none)
+  if (field <= 0) updateTimer();
   draw();
 }
 
+// Opens in day mode, which needs no timer
 function enter() {
   Ollee.clear();
   timeMode = false;
   field = -1;
   fast = false;
-  if (timer < 0) timer = Ollee.setInterval('tick()', 250);
+  stopTimer();
   draw();
 }
 
 function exit() {
-  if (timer >= 0) Ollee.clearInterval(timer);
-  timer = -1;
+  stopTimer();
 }

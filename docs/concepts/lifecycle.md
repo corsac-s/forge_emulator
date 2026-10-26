@@ -48,6 +48,7 @@ const subscribe = E_A_SHORT + E_L_SHORT + E_CLOCK_MINUTE;
 | `E_BLE_RX` | `ble_rx(data)` | A phone writes to the Forge BLE service |
 | `E_CLOCK_MINUTE` | `clock_minute()` | Each new minute |
 | `E_CLOCK_HOUR` | `clock_hour()` | Each new hour (after `clock_minute()`) |
+| `E_CLOCK_SECOND` | `clock_second()` | Every second (foreground only) |
 | `E_BLE_CONNECT` | `ble_connect()` | A phone connects over BLE |
 | `E_BLE_DISCONNECT` | `ble_disconnect()` | The phone disconnects |
 
@@ -73,7 +74,8 @@ function clock_hour() {
 ```
 
 - `Ollee.subscribe` and `Ollee.unsubscribe` only accept those five bits and
-  return `false` for anything else.
+  return `false` for anything else. `E_CLOCK_SECOND` isn't one of them: a
+  once-a-second wake-up all day would drain the battery.
 - Leaving the face doesn't unsubscribe. Only `Ollee.unsubscribe` does (or an
   error, or reloading the script).
 - `Ollee.active()` tells you whether your face is on screen. Draw calls are
@@ -93,6 +95,12 @@ Ollee.clearInterval(id);
   they're all in use, the call returns `-1`.
 - The callback can be a function or a string of code, e.g.
   `Ollee.setInterval('tick()', 250)`. The string runs in your script's scope.
+- **Whole-second delays** (`1000`, `2000`, ...) run on the low-power RTC
+  scheduler, and their first call can come up to 1 s early. Other delays under
+  60000 ms are accurate to the millisecond but use more power. See
+  [the API reference](../api/README.md#timers).
+- For a display that changes every second, subscribing to `E_CLOCK_SECOND`
+  and drawing in `clock_second()` needs no timer at all.
 - **Leaving the face cancels all its timers.** Start them in `enter()`, and set
   your stored ids back to `-1` in `exit()` so you don't clear a slot that's
   been reused:

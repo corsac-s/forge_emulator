@@ -107,10 +107,29 @@ connection state.
 | --- | --- | --- |
 | `clock_minute()` | `E_CLOCK_MINUTE` | At each new minute |
 | `clock_hour()` | `E_CLOCK_HOUR` | At each new hour, right after `clock_minute()` |
+| `clock_second()` | `E_CLOCK_SECOND` | Once a second, while the face is on screen |
 
 These are the cheapest way to keep a clock face current. You don't need a
-timer. Both can also run in the background with `Ollee.subscribe`.
+timer. `clock_minute()` and `clock_hour()` can also run in the background with
+`Ollee.subscribe`.
+
+`clock_second()` is for seconds displays and countdowns:
+
+- It runs on the watch's low-power RTC scheduler, the way the built-in clock
+  faces tick, and doesn't use one of the 4 timer slots.
+- It stops by itself when the face leaves the screen, and can't be subscribed
+  in the background (`Ollee.subscribe(E_CLOCK_SECOND)` returns `false`).
+- Its tick isn't lined up with the clock's own second, so each new second can
+  show up to ~1 s late. Work out what to show from `new Date()` rather than
+  counting calls.
+- `subscribe` is fixed, so it runs whenever the face is on screen. If you only
+  need seconds in one mode, return early in the other modes, or use
+  `Ollee.setInterval(fn, 1000)`, which can be started and stopped and also
+  runs on the RTC scheduler.
+
+[examples/totp.js](../../examples/totp.js) uses it for the code countdown.
 
 In the emulator they follow your computer's clock, and the **Clock** panel's
 **Minute tick** and **Hour tick** buttons fire one right away (without changing
-the time `new Date()` returns).
+the time `new Date()` returns). `clock_second()` calls aren't logged, as they'd
+flood the log.

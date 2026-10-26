@@ -311,8 +311,8 @@ const DEFAULT_EXAMPLE_FALLBACK = `// Template project: a minimal Forge watch fac
 //             Stop timers or save state here.
 //
 // Event handlers (a_short, a_long, l_short, l_long, tilt, tap, button, ble_rx,
-// clock_minute, clock_hour, ble_connect, ble_disconnect) only fire if their
-// E_* bit is set in \`subscribe\` below.
+// clock_minute, clock_hour, clock_second, ble_connect, ble_disconnect) only
+// fire if their E_* bit is set in \`subscribe\` below.
 
 const subscribe = E_A_SHORT;
 
@@ -433,7 +433,7 @@ function showHomeScreen() {
 const FIRMWARE_GLOBALS = new Set([
   'Array', 'ArrayBuffer', 'ArrayBufferView', 'B_A', 'B_L', 'Boolean', 'DataView', 'Date',
   'E_A_LONG', 'E_A_SHORT', 'E_BLE_CONNECT', 'E_BLE_DISCONNECT', 'E_BLE_RX', 'E_BUTTONS',
-  'E_CLOCK_HOUR', 'E_CLOCK_MINUTE', 'E_DOWN',
+  'E_CLOCK_HOUR', 'E_CLOCK_MINUTE', 'E_CLOCK_SECOND', 'E_DOWN',
   'E_L_LONG', 'E_L_SHORT', 'E_TAP', 'E_TILT', 'E_UP', 'Error', 'Float32Array', 'Float64Array',
   'Function', 'HIGH', 'Infinity', 'Int16Array', 'Int32Array', 'Int8Array', 'InternalError', 'JSON',
   'LOW', 'Math', 'Modules', 'NaN', 'Number', 'Object', 'Ollee', 'ReferenceError', 'RegExp', 'String',
@@ -472,8 +472,8 @@ function runScript(source) {
   // running is false on the home screen and while init() runs
   ollee.isActive = () => running;
 
-  const paramNames = ['Ollee', 'E_A_SHORT', 'E_A_LONG', 'E_L_SHORT', 'E_L_LONG', 'E_TILT', 'E_BUTTONS', 'E_TAP', 'E_BLE_RX', 'E_CLOCK_MINUTE', 'E_CLOCK_HOUR', 'E_BLE_CONNECT', 'E_BLE_DISCONNECT', 'B_A', 'B_L', 'E_DOWN', 'E_UP', 'console', 'log', 'Date'];
-  const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'tap', 'button', 'ble_rx', 'clock_minute', 'clock_hour', 'ble_connect', 'ble_disconnect'];
+  const paramNames = ['Ollee', 'E_A_SHORT', 'E_A_LONG', 'E_L_SHORT', 'E_L_LONG', 'E_TILT', 'E_BUTTONS', 'E_TAP', 'E_BLE_RX', 'E_CLOCK_MINUTE', 'E_CLOCK_HOUR', 'E_BLE_CONNECT', 'E_BLE_DISCONNECT', 'E_CLOCK_SECOND', 'B_A', 'B_L', 'E_DOWN', 'E_UP', 'console', 'log', 'Date'];
+  const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'tap', 'button', 'ble_rx', 'clock_minute', 'clock_hour', 'ble_connect', 'ble_disconnect', 'clock_second'];
 
   const exportsObj = hookNames.map((n) => `${n}: (typeof ${n} !== 'undefined') ? ${n} : undefined`).join(',\n    ');
   // The script runs in an inner function, and every browser-only global is
@@ -511,7 +511,7 @@ function runScript(source) {
 
   let result;
   try {
-    result = factory(ollee, E_A_SHORT, E_A_LONG, E_L_SHORT, E_L_LONG, E_TILT, E_BUTTONS, E_TAP, E_BLE_RX, E_CLOCK_MINUTE, E_CLOCK_HOUR, E_BLE_CONNECT, E_BLE_DISCONNECT, B_A, B_L, E_DOWN, E_UP, scriptConsole, log, OlleeDate);
+    result = factory(ollee, E_A_SHORT, E_A_LONG, E_L_SHORT, E_L_LONG, E_TILT, E_BUTTONS, E_TAP, E_BLE_RX, E_CLOCK_MINUTE, E_CLOCK_HOUR, E_BLE_CONNECT, E_BLE_DISCONNECT, E_CLOCK_SECOND, B_A, B_L, E_DOWN, E_UP, scriptConsole, log, OlleeDate);
   } catch (e) {
     logError(`Script error: ${scriptErrorMessage(e)}`);
     setStatus('script error', 'error');
@@ -536,6 +536,7 @@ function runScript(source) {
   if ((subs & E_CLOCK_HOUR) && typeof hooks.clock_hour === 'function') effectiveSubs |= E_CLOCK_HOUR;
   if ((subs & E_BLE_CONNECT) && typeof hooks.ble_connect === 'function') effectiveSubs |= E_BLE_CONNECT;
   if ((subs & E_BLE_DISCONNECT) && typeof hooks.ble_disconnect === 'function') effectiveSubs |= E_BLE_DISCONNECT;
+  if ((subs & E_CLOCK_SECOND) && typeof hooks.clock_second === 'function') effectiveSubs |= E_CLOCK_SECOND;
 
   log('-- face loaded --');
   // On the watch init() runs at upload/boot, before the face is entered,
@@ -800,6 +801,22 @@ function scheduleClockTick() {
   }, 60000 - (now % 60000));
 }
 scheduleClockTick();
+
+// --- E_CLOCK_SECOND (g_clock_second_task in forge_interpreter.c): a 1 s
+// task on the RTC scheduler, whose tick is free-running (RTC_TICK_EPOCH in
+// ollee.js) rather than aligned to the clock's seconds. It only reaches
+// clock_second() while the face is running with the bit in `subscribe`;
+// it can't be subscribed in the background. Not logged: it'd flood the log. ---
+
+function scheduleSecondTick() {
+  setTimeout(() => {
+    if (hooks && !faceDisabled && running && (effectiveSubs & E_CLOCK_SECOND)) {
+      runHook(hooks.clock_second, 'clock_second');
+    }
+    scheduleSecondTick();
+  }, msToRtcTick());
+}
+scheduleSecondTick();
 
 // --- BLE connection changes (Event_BLE_APP_CONNECT/DISCONNECT, delivered by
 // forge_broadcast_dispatch): ticking or unticking "phone connected" plays a

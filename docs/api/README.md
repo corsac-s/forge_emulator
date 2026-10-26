@@ -29,6 +29,7 @@ their bit in `subscribe`. See [Lifecycle](../concepts/lifecycle.md).
 | `ble_rx(data)` | `E_BLE_RX` | A phone wrote ≤ 20 bytes. `data` is a byte string. |
 | `clock_minute()` | `E_CLOCK_MINUTE` | Each new minute |
 | `clock_hour()` | `E_CLOCK_HOUR` | Each new hour |
+| `clock_second()` | `E_CLOCK_SECOND` | Every second, while the face is on screen |
 | `ble_connect()` | `E_BLE_CONNECT` | A phone connected over BLE |
 | `ble_disconnect()` | `E_BLE_DISCONNECT` | The phone disconnected |
 
@@ -56,6 +57,7 @@ const subscribe = E_A_SHORT + E_L_SHORT;   // bitmask of events to receive while
 | `E_CLOCK_HOUR` | `1 << 9` | ✓ |
 | `E_BLE_CONNECT` | `1 << 10` | ✓ |
 | `E_BLE_DISCONNECT` | `1 << 11` | ✓ |
+| `E_CLOCK_SECOND` | `1 << 12` | |
 
 "Background" bits can also be passed to `Ollee.subscribe`.
 
@@ -137,6 +139,22 @@ leaves the screen. See [Lifecycle](../concepts/lifecycle.md#timers).
 | `Ollee.clearInterval(id)` | Same as `clearTimeout` |
 
 `fn` can be a function or a string of code (run in your script's scope).
+
+`ms` decides which of the watch's schedulers runs the timer:
+
+- **Whole seconds** (`1000`, `2000`, ...): the low-power RTC scheduler, which
+  ticks once a second. The first call comes on the RTC's shared 1-second tick,
+  so it can land up to 1 s early (a 1000 ms timer can fire almost at once).
+  After that, an interval repeats exactly every N seconds.
+- **Anything else up to 60000 ms** (`250`, `1500`, ...): the 1 ms app
+  scheduler. It's accurate to the millisecond but keeps a high-power timer
+  running.
+- **Over 60000 ms and not whole seconds:** the RTC scheduler, rounded down to
+  whole seconds. The longest delay is 60000 s (about 16.7 h). Longer ones
+  return `-1`.
+
+Use whole seconds where 1 s resolution is enough. To refresh a display every
+second, `E_CLOCK_SECOND` (below) is simpler still: it uses no timer slot.
 
 ### Info
 

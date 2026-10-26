@@ -16,6 +16,7 @@ const E_CLOCK_MINUTE = 1 << 8;
 const E_CLOCK_HOUR = 1 << 9;
 const E_BLE_CONNECT = 1 << 10;
 const E_BLE_DISCONNECT = 1 << 11;
+const E_CLOCK_SECOND = 1 << 12;
 
 // Values passed to a script's button(btn, event, millis) handler.
 const B_A = 0;
@@ -24,6 +25,32 @@ const E_DOWN = 0;
 const E_UP = 1;
 
 const EJS_TIMER_SLOTS = 4;
+
+// The firmware's RTC scheduler (app_rtc_scheduler.c) counts a free-running
+// 1 s tick. E_CLOCK_SECOND (app.js) and whole-second timers both run on it,
+// so they share this phase.
+const RTC_TICK_EPOCH = performance.now();
+const RTC_SCHEDULER_MAX_S = 60000;   // MAX_SCHEDULER_TASK_PERIOD
+
+// ms until the RTC scheduler's next 1 s tick
+function msToRtcTick() {
+  return 1000 - (performance.now() - RTC_TICK_EPOCH) % 1000;
+}
+
+// { first, period } in ms for an Ollee.setTimeout/setInterval delay, or null
+// if the firmware would reject it (ollee_call_with_timer): whole seconds go
+// on the RTC scheduler, whose first call lands on its Nth tick (N-1 to N s
+// away); other delays up to 60 s on the 1 ms scheduler, as given; longer
+// ones on the RTC scheduler, truncated to whole seconds.
+function timerDelays(delay) {
+  const delayMs = delay < 1 ? 1 : Math.floor(delay);
+  if (delayMs <= 60000 && (delayMs < 1000 || delayMs % 1000 !== 0)) {
+    return { first: delayMs, period: delayMs };
+  }
+  const delayS = Math.floor(delayMs / 1000);
+  if (delayS > RTC_SCHEDULER_MAX_S) return null;
+  return { first: (delayS - 1) * 1000 + msToRtcTick(), period: delayS * 1000 };
+}
 
 // E_* bits Ollee.subscribe accepts (FORGE_BG_EVENTS in forge_interpreter.h)
 const FORGE_BG_EVENTS = E_BLE_RX | E_CLOCK_MINUTE | E_CLOCK_HOUR | E_BLE_CONNECT | E_BLE_DISCONNECT;
@@ -321,22 +348,30 @@ class OlleeRuntime {
     if (typeof callback !== 'function' && typeof callback !== 'string') return -1;
     const slot = this._timerSlots.findIndex((s) => s === null);
     if (slot === -1) return -1;
-    const delayMs = delay < 1 ? 1 : delay;
+    const delays = timerDelays(delay);
+    if (!delays) return -1;
     const handle = setTimeout(() => {
       this._timerSlots[slot] = null;
       this._runCallback(callback);
-    }, delayMs);
-    this._timerSlots[slot] = { handle, periodic: false };
+    }, delays.first);
+    this._timerSlots[slot] = { handle };
     return slot;
   }
 
+  // The first call can come early (RTC tick phase), so it's a timeout that
+  // then starts the repeating timer in the same slot
   setInterval(callback, delay) {
     if (typeof callback !== 'function' && typeof callback !== 'string') return -1;
     const slot = this._timerSlots.findIndex((s) => s === null);
     if (slot === -1) return -1;
-    const delayMs = delay < 1 ? 1 : delay;
-    const handle = setInterval(() => this._runCallback(callback), delayMs);
-    this._timerSlots[slot] = { handle, periodic: true };
+    const delays = timerDelays(delay);
+    if (!delays) return -1;
+    const entry = {};
+    entry.handle = setTimeout(() => {
+      entry.handle = setInterval(() => this._runCallback(callback), delays.period);
+      this._runCallback(callback);
+    }, delays.first);
+    this._timerSlots[slot] = entry;
     return slot;
   }
 
@@ -354,8 +389,8 @@ class OlleeRuntime {
   _clearSlotIndex(i) {
     const slot = this._timerSlots[i];
     if (!slot) return;
-    if (slot.periodic) clearInterval(slot.handle);
-    else clearTimeout(slot.handle);
+    // Timeout and interval ids share one pool, so this clears either
+    clearTimeout(slot.handle);
     this._timerSlots[i] = null;
   }
 }

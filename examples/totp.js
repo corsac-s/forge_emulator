@@ -17,6 +17,8 @@
 //   p  TOTP period (default 30)         c  HOTP starting counter (default 0)
 // The rfc-* entries use the RFC 4226/6238 test key, so they can be checked
 // against the published tables. Swap in your own.
+
+// Test codes with - https://totp.danhersam.com/
 const CREDS = [
   { n: 'rfc-t', t: 'T', s: 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ' },
   { n: 'rfc-h', t: 'H', s: 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ', c: 0 }
@@ -29,13 +31,14 @@ const NAME_MS = 5000;
 const CNT_MS = 5000;
 const HOTP_DEC_MS = 5000;
 
-const subscribe = E_A_SHORT + E_BUTTONS;
+// E_CLOCK_SECOND ticks the TOTP countdown off the low-power RTC scheduler,
+// with no timer slot to manage. It only runs while the face is on screen.
+const subscribe = E_A_SHORT + E_BUTTONS + E_CLOCK_SECOND;
 
 var ci = 0;
 var ph = 0;            // 0 name, 1 counter (HOTP only), 2 code
 var ses = 0;
 var nameT = -1;        // timer ids: -1 means not running
-var tickT = -1;
 var decT = -1;
 var lHeld = false;
 var lUsed = false;     // current L press already spent, don't count it on release
@@ -108,14 +111,13 @@ function draw() {
   Ollee.drawMain(txt || (c.n + '      ').slice(0, 6));
 }
 
-// Chained timeouts aligned to the second, not setInterval: an interval drifts
-// out of phase and the countdown visibly lags the rollover. +20ms makes sure
-// we land after the boundary, not just before it.
-function sched() {
-  if (tickT < 0 && CREDS[ci].t != 'H')
-    tickT = Ollee.setTimeout(tick, 1020 - new Date().getTime() % 1000);
+// Once a second while on screen. HOTP has nothing that changes with time.
+// The tick isn't aligned to the clock's second, so the countdown (and the
+// code at a rollover) can update up to ~1 s late; draw() works from the
+// current time, so it never drifts further than that.
+function clock_second() {
+  if (CREDS[ci].t != 'H') draw();
 }
-function tick() { tickT = -1; draw(); sched(); }
 
 // Callbacks reset their own id before doing anything else. Slots get reused,
 // so clearing a stale id could kill some other timer.
@@ -130,7 +132,6 @@ function showName() {
   shown = -1;
   nameT = Ollee.setTimeout(nameDone, NAME_MS);
   draw();
-  sched();
 }
 function nameDone() { nameT = -1; next(); }
 function next() {
@@ -192,7 +193,6 @@ function enter() {
 // The firmware kills our timers on exit anyway, this just keeps the ids honest.
 function exit() {
   nameT = stop(nameT);
-  tickT = stop(tickT);
   decT = stop(decT);
   lHeld = false;
 }
