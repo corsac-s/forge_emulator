@@ -95,12 +95,11 @@ Ollee.clearInterval(id);
   they're all in use, the call returns `-1`.
 - The callback can be a function or a string of code, e.g.
   `Ollee.setInterval('tick()', 250)`. The string runs in your script's scope.
-- **Whole-second delays** (`1000`, `2000`, ...) run on the low-power RTC
-  scheduler, and their first call can come up to 1 s early. Other delays under
-  60000 ms are accurate to the millisecond but use more power. See
-  [the API reference](../api/README.md#timers).
-- For a display that changes every second, subscribing to `E_CLOCK_SECOND`
-  and drawing in `clock_second()` needs no timer at all.
+- Delays up to 60000 ms are accurate to the millisecond, but a running
+  timer costs power. See [the API reference](../api/README.md#timers).
+- For a display that changes every second, subscribe to `E_CLOCK_SECOND` and
+  draw in `clock_second()` instead of using a 1000 ms interval. It needs no
+  timer and runs on the low-power RTC scheduler.
 - **Leaving the face cancels all its timers.** Start them in `enter()`, and set
   your stored ids back to `-1` in `exit()` so you don't clear a slot that's
   been reused:

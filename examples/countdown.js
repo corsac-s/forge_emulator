@@ -6,16 +6,15 @@
 // Press L to edit the target: L steps through year -> month -> day -> done.
 // A increments the blinking field; hold A to increment every 250 ms.
 //
-// To save power, a timer only runs while something on screen changes faster
-// than once an hour: in time mode, and while editing. Day mode has no timer;
-// clock_hour() redraws it, so the day count still rolls over at midnight.
-// Time mode uses a 1000 ms interval rather than E_CLOCK_SECOND: whole-second
-// intervals run on the low-power RTC scheduler too, and unlike a `subscribe`
-// bit the interval can be stopped in day mode.
+// To save power, time mode ticks on clock_second() (E_CLOCK_SECOND, the
+// watch's low-power 1 s tick) rather than a timer, and only edit mode runs a
+// timer, for the blink and hold-to-repeat. clock_second() runs whenever the
+// face is on screen, so it returns early outside time mode. Day mode is
+// redrawn by clock_hour(), so the day count still rolls over at midnight.
 
 // Target: year, month (0-11), day, hour, minute, second
 var TARGET = new Date(2026, 11, 25, 0, 0, 0);   // 25 Dec 2026
-const subscribe = E_A_SHORT + E_A_LONG + E_L_SHORT + E_BUTTONS + E_CLOCK_HOUR;
+const subscribe = E_A_SHORT + E_A_LONG + E_L_SHORT + E_BUTTONS + E_CLOCK_HOUR + E_CLOCK_SECOND;
 
 var timeMode = false;
 var timer = -1;
@@ -95,23 +94,26 @@ function stopTimer() {
   timer = -1;
 }
 
-// Starts the timer the current mode needs, if any: tick() every 250 ms while
-// editing, draw() every second in time mode, none in day mode.
+// Runs tick() every 250 ms while editing; no timer otherwise.
 function updateTimer() {
   stopTimer();
   if (field >= 0) timer = Ollee.setInterval('tick()', 250);
-  else if (timeMode) timer = Ollee.setInterval('draw()', 1000);
+}
+
+// Time mode's tick
+function clock_second() {
+  if (timeMode && field < 0) draw();
 }
 
 // Day mode's only refresh. Midnight is on the hour, so this catches the
 // day count changing.
 function clock_hour() {
-  draw();
+  if (!timeMode && field < 0) draw();
 }
 
 function a_short() {
   if (field >= 0) inc();
-  else { timeMode = !timeMode; updateTimer(); draw(); }
+  else { timeMode = !timeMode; draw(); }
 }
 
 function a_long() {
@@ -140,8 +142,7 @@ function l_short() {
   }
   blinkOn = true;
   ticks = 0;
-  // Entering edit mode starts the 250 ms tick; leaving it goes back to the
-  // display mode's timer (or none)
+  // Entering edit mode starts the 250 ms tick; leaving it stops it
   if (field <= 0) updateTimer();
   draw();
 }

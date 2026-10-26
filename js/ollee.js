@@ -27,8 +27,8 @@ const E_UP = 1;
 const EJS_TIMER_SLOTS = 4;
 
 // The firmware's RTC scheduler (app_rtc_scheduler.c) counts a free-running
-// 1 s tick. E_CLOCK_SECOND (app.js) and whole-second timers both run on it,
-// so they share this phase.
+// 1 s tick. E_CLOCK_SECOND (app.js) and timers over 60 s both run on it, so
+// they share this phase.
 const RTC_TICK_EPOCH = performance.now();
 const RTC_SCHEDULER_MAX_S = 60000;   // MAX_SCHEDULER_TASK_PERIOD
 
@@ -38,15 +38,13 @@ function msToRtcTick() {
 }
 
 // { first, period } in ms for an Ollee.setTimeout/setInterval delay, or null
-// if the firmware would reject it (ollee_call_with_timer): whole seconds go
-// on the RTC scheduler, whose first call lands on its Nth tick (N-1 to N s
-// away); other delays up to 60 s on the 1 ms scheduler, as given; longer
-// ones on the RTC scheduler, truncated to whole seconds.
+// if the firmware would reject it (ollee_call_with_timer): delays up to 60 s
+// run on the 1 ms scheduler, as given; longer ones on the RTC scheduler,
+// truncated to whole seconds, with the first call on its Nth tick (N-1 to
+// N s away).
 function timerDelays(delay) {
   const delayMs = delay < 1 ? 1 : Math.floor(delay);
-  if (delayMs <= 60000 && (delayMs < 1000 || delayMs % 1000 !== 0)) {
-    return { first: delayMs, period: delayMs };
-  }
+  if (delayMs <= 60000) return { first: delayMs, period: delayMs };
   const delayS = Math.floor(delayMs / 1000);
   if (delayS > RTC_SCHEDULER_MAX_S) return null;
   return { first: (delayS - 1) * 1000 + msToRtcTick(), period: delayS * 1000 };

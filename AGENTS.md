@@ -30,12 +30,12 @@ browser.
   `Ollee.clearTimeout`/`Ollee.clearInterval`. The watch has no global
   `setTimeout`/`setInterval`/`clearTimeout`/`clearInterval`, so calling those is
   a ReferenceError. They share **4 slots** and return `-1` when they're all
-  used. Whole-second delays (`1000`, `2000`, ...) run on the low-power RTC
-  scheduler (first call up to 1 s early); other delays under 60 s use the
-  high-power 1 ms scheduler. For a once-a-second redraw, prefer
-  `E_CLOCK_SECOND` + `clock_second()`, which uses no slot and only runs while
-  the face is on screen. Leaving the face cancels all timers, so restart them
-  in `enter()` and reset your stored ids in `exit()`. `Ollee.clearInterval(null)` (or with no id)
+  used. Delays up to 60 s are accurate to the millisecond but run on the
+  high-power 1 ms scheduler. For a once-a-second redraw, use `E_CLOCK_SECOND` +
+  `clock_second()` instead of a 1000 ms interval: it uses no slot, runs on the
+  low-power RTC scheduler, and only runs while the face is on screen. Leaving
+  the face cancels all timers, so restart them in `enter()` and reset your
+  stored ids in `exit()`. `Ollee.clearInterval(null)` (or with no id)
   cancels *all* of the script's timers, so only clear an id you actually hold.
 - **An uncaught error disables the face** on the watch. Wrap risky code in
   `try`/`catch`.

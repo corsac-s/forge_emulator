@@ -140,21 +140,19 @@ leaves the screen. See [Lifecycle](../concepts/lifecycle.md#timers).
 
 `fn` can be a function or a string of code (run in your script's scope).
 
-`ms` decides which of the watch's schedulers runs the timer:
+Timing:
 
-- **Whole seconds** (`1000`, `2000`, ...): the low-power RTC scheduler, which
-  ticks once a second. The first call comes on the RTC's shared 1-second tick,
-  so it can land up to 1 s early (a 1000 ms timer can fire almost at once).
-  After that, an interval repeats exactly every N seconds.
-- **Anything else up to 60000 ms** (`250`, `1500`, ...): the 1 ms app
-  scheduler. It's accurate to the millisecond but keeps a high-power timer
-  running.
-- **Over 60000 ms and not whole seconds:** the RTC scheduler, rounded down to
-  whole seconds. The longest delay is 60000 s (about 16.7 h). Longer ones
+- **Up to 60000 ms:** accurate to the millisecond (the watch's 1 ms
+  scheduler). A pending timer keeps a high-power timer running, so only keep
+  timers while you need them.
+- **Over 60000 ms:** the low-power RTC scheduler, which only counts whole
+  seconds. `ms` is rounded down to whole seconds and the first call can come
+  up to 1 s early. The longest delay is 60000 s (about 16.7 h). Longer ones
   return `-1`.
 
-Use whole seconds where 1 s resolution is enough. To refresh a display every
-second, `E_CLOCK_SECOND` (below) is simpler still: it uses no timer slot.
+To update the display every second, don't use `Ollee.setInterval(fn, 1000)`:
+subscribe to `E_CLOCK_SECOND` and draw in `clock_second()`. It runs on the
+low-power RTC scheduler and uses no timer slot.
 
 ### Info
 

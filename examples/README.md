@@ -6,7 +6,7 @@ Load any of these in the emulator with **Load file**, then click **Run**.
 | --- | --- |
 | [template.js](template.js) | Starting point with `init`/`enter`/`exit` and a button. The emulator loads it by default. |
 | [dice_roller.js](dice_roller.js) | Modes on button L, `Ollee.hwRand()` |
-| [countdown.js](countdown.js) | Date math, editing values with blink, hold-to-repeat with `a_long` + `button()` |
+| [countdown.js](countdown.js) | Date math, editing values with blink, hold-to-repeat with `a_long` + `button()`, a seconds display on `clock_second()` |
 | [metronome.js](metronome.js) | Acting on button release, string timer callbacks |
 | [ioDemo.js](ioDemo.js) | A menu over battery, temperature, steps, beep (A) and very short beep (hold A), LED, tilt and tap |
 | [location.js](location.js) | `Ollee.latitude()`/`longitude()` |

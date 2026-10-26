@@ -123,9 +123,8 @@ timer. `clock_minute()` and `clock_hour()` can also run in the background with
   show up to ~1 s late. Work out what to show from `new Date()` rather than
   counting calls.
 - `subscribe` is fixed, so it runs whenever the face is on screen. If you only
-  need seconds in one mode, return early in the other modes, or use
-  `Ollee.setInterval(fn, 1000)`, which can be started and stopped and also
-  runs on the RTC scheduler.
+  need seconds in one mode, return early in the other modes, as
+  [examples/countdown.js](../../examples/countdown.js) does.
 
 [examples/totp.js](../../examples/totp.js) uses it for the code countdown.
 
