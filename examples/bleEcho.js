@@ -5,31 +5,33 @@
 //   - write text to RX (C6FB0002-...), up to 20 bytes per write
 // Each write is shown on the main display and echoed back as "echo:<text>".
 // A sends the current step count; L sends a counter that goes up each press.
-// The PM indicator shows whether a phone is connected (checked every second),
-// and the A/L sends are skipped with "no ble" while nothing is connected.
+// The LAP indicator shows whether a phone is connected. Rather than polling
+// Ollee.connected() on a timer, the face reads it once in enter() and then
+// follows the ble_connect()/ble_disconnect() events, beeping on each change.
+// The A/L sends are skipped with "no ble" while nothing is connected.
 var count = 0;
-var connId = -1;
-var wasConnected = null;
-const subscribe = E_BLE_RX + E_A_SHORT + E_L_SHORT;
+const subscribe = E_BLE_RX + E_A_SHORT + E_L_SHORT + E_BLE_CONNECT + E_BLE_DISCONNECT;
 
-function showConnection() {
-  var c = Ollee.connected();
-  if (c === wasConnected) return;
-  wasConnected = c;
-  Ollee.drawLap(c);
-  Ollee.drawMain(c ? 'ble' : 'no ble');
+function showConnection(connected) {
+  Ollee.drawLap(connected);
+  Ollee.drawMain(connected ? 'ble' : 'no ble');
 }
 
+// Connection changes while the face is off screen aren't delivered, so start
+// from the current state
 function enter() {
   Ollee.clear();
-  wasConnected = null;
-  showConnection();
-  connId = Ollee.setInterval(showConnection, 1000);
+  showConnection(Ollee.connected());
 }
 
-function exit() {
-  if (connId !== -1) Ollee.clearInterval(connId);
-  connId = -1;
+function ble_connect() {
+  showConnection(true);
+  Ollee.beep();
+}
+
+function ble_disconnect() {
+  showConnection(false);
+  Ollee.beep();
 }
 
 // Sends msg if a phone is connected; otherwise shows "no ble" instead.

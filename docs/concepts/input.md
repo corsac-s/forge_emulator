@@ -77,6 +77,30 @@ case. What the watch sends shows in the log. On a real watch, a generic BLE app
 such as nRF Connect works for testing. See
 [examples/bleEcho.js](../../examples/bleEcho.js).
 
+## Bluetooth connection: `ble_connect()` / `ble_disconnect()`
+
+| Hook | Bit | Fires |
+| --- | --- | --- |
+| `ble_connect()` | `E_BLE_CONNECT` | When a phone connects to the watch |
+| `ble_disconnect()` | `E_BLE_DISCONNECT` | When the phone's connection ends |
+
+- They fire for any BLE connection: the Ollee app or a generic app like nRF
+  Connect.
+- `Ollee.connected()` already has the new value when the hook runs.
+- Use them instead of polling `Ollee.connected()` on a timer. A change while
+  your face is off screen isn't delivered (unless you `Ollee.subscribe` to it),
+  so read `Ollee.connected()` once in `enter()` to draw the starting state.
+- Don't count on `Ollee.send` from `ble_connect()`. The phone usually hasn't
+  turned on notifications yet, so the data is likely lost. Wait for the
+  phone's first `ble_rx` message, or send a little later.
+- Both can run in the background with `Ollee.subscribe`, for example to beep
+  when the phone goes out of range.
+
+In the emulator, ticking **phone connected** fires `ble_connect()`, and
+unticking it fires `ble_disconnect()`.
+[examples/bleEcho.js](../../examples/bleEcho.js) uses both to show the
+connection state.
+
 ## Clock events
 
 | Hook | Bit | Fires |

@@ -16,8 +16,8 @@ browser.
 - **Hooks are found by their exact top-level name.** Declare them as top-level
   `function` declarations (or top-level `var`/`const`): `init`, `enter`,
   `exit`, `a_short`, `a_long`, `l_short`, `l_long`, `tilt`, `tap`, `button`,
-  `ble_rx`, `clock_minute`, `clock_hour`. Never wrap them in an object, IIFE, or
-  class.
+  `ble_rx`, `clock_minute`, `clock_hour`, `ble_connect`, `ble_disconnect`.
+  Never wrap them in an object, IIFE, or class.
 - **Event hooks only fire if their bit is in `subscribe`**, for example
   `const subscribe = E_A_SHORT + E_L_SHORT;`. `init`, `enter` and `exit` don't
   need a bit.
@@ -66,8 +66,9 @@ the script in the emulator:
 4. Read the **log** panel. **Copy log** puts it on the clipboard so it can be
    handed back to you.
 
-The Bluetooth panel sends BLE writes to `ble_rx`, and the Clock panel fires
-`clock_minute`/`clock_hour` on demand.
+The Bluetooth panel sends BLE writes to `ble_rx`, and its **phone connected**
+box fires `ble_connect`/`ble_disconnect` when ticked or unticked. The Clock
+panel fires `clock_minute`/`clock_hour` on demand.
 
 ## Map of the docs
 

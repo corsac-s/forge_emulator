@@ -11,6 +11,6 @@ Load any of these in the emulator with **Load file**, then click **Run**.
 | [ioDemo.js](ioDemo.js) | A menu over battery, temperature, steps, beep (A) and very short beep (hold A), LED, tilt and tap |
 | [location.js](location.js) | `Ollee.latitude()`/`longitude()` |
 | [chime.js](chime.js) | A clock driven by `clock_minute()`, and a background `clock_hour()` chime via `Ollee.subscribe` |
-| [bleEcho.js](bleEcho.js) | Two-way Bluetooth with a phone app |
+| [bleEcho.js](bleEcho.js) | Two-way Bluetooth with a phone app, with the connection state from `ble_connect()`/`ble_disconnect()` |
 | [bleInbox.js](bleInbox.js) | Receiving Bluetooth messages in the background |
 | [totp.js](totp.js) | TOTP/HOTP authenticator (RFC 6238/4226) built on `Ollee.hmacSha1()` |

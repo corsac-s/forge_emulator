@@ -311,8 +311,8 @@ const DEFAULT_EXAMPLE_FALLBACK = `// Template project: a minimal Forge watch fac
 //             Stop timers or save state here.
 //
 // Event handlers (a_short, a_long, l_short, l_long, tilt, tap, button, ble_rx,
-// clock_minute, clock_hour) only fire if their E_* bit is set in \`subscribe\`
-// below.
+// clock_minute, clock_hour, ble_connect, ble_disconnect) only fire if their
+// E_* bit is set in \`subscribe\` below.
 
 const subscribe = E_A_SHORT;
 
@@ -432,7 +432,8 @@ function showHomeScreen() {
 // window, document, Map, Promise, fetch... - is a ReferenceError on the watch.
 const FIRMWARE_GLOBALS = new Set([
   'Array', 'ArrayBuffer', 'ArrayBufferView', 'B_A', 'B_L', 'Boolean', 'DataView', 'Date',
-  'E_A_LONG', 'E_A_SHORT', 'E_BLE_RX', 'E_BUTTONS', 'E_CLOCK_HOUR', 'E_CLOCK_MINUTE', 'E_DOWN',
+  'E_A_LONG', 'E_A_SHORT', 'E_BLE_CONNECT', 'E_BLE_DISCONNECT', 'E_BLE_RX', 'E_BUTTONS',
+  'E_CLOCK_HOUR', 'E_CLOCK_MINUTE', 'E_DOWN',
   'E_L_LONG', 'E_L_SHORT', 'E_TAP', 'E_TILT', 'E_UP', 'Error', 'Float32Array', 'Float64Array',
   'Function', 'HIGH', 'Infinity', 'Int16Array', 'Int32Array', 'Int8Array', 'InternalError', 'JSON',
   'LOW', 'Math', 'Modules', 'NaN', 'Number', 'Object', 'Ollee', 'ReferenceError', 'RegExp', 'String',
@@ -471,8 +472,8 @@ function runScript(source) {
   // running is false on the home screen and while init() runs
   ollee.isActive = () => running;
 
-  const paramNames = ['Ollee', 'E_A_SHORT', 'E_A_LONG', 'E_L_SHORT', 'E_L_LONG', 'E_TILT', 'E_BUTTONS', 'E_TAP', 'E_BLE_RX', 'E_CLOCK_MINUTE', 'E_CLOCK_HOUR', 'B_A', 'B_L', 'E_DOWN', 'E_UP', 'console', 'log', 'Date'];
-  const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'tap', 'button', 'ble_rx', 'clock_minute', 'clock_hour'];
+  const paramNames = ['Ollee', 'E_A_SHORT', 'E_A_LONG', 'E_L_SHORT', 'E_L_LONG', 'E_TILT', 'E_BUTTONS', 'E_TAP', 'E_BLE_RX', 'E_CLOCK_MINUTE', 'E_CLOCK_HOUR', 'E_BLE_CONNECT', 'E_BLE_DISCONNECT', 'B_A', 'B_L', 'E_DOWN', 'E_UP', 'console', 'log', 'Date'];
+  const hookNames = ['enter', 'exit', 'init', 'a_short', 'a_long', 'l_short', 'l_long', 'tilt', 'tap', 'button', 'ble_rx', 'clock_minute', 'clock_hour', 'ble_connect', 'ble_disconnect'];
 
   const exportsObj = hookNames.map((n) => `${n}: (typeof ${n} !== 'undefined') ? ${n} : undefined`).join(',\n    ');
   // The script runs in an inner function, and every browser-only global is
@@ -510,7 +511,7 @@ function runScript(source) {
 
   let result;
   try {
-    result = factory(ollee, E_A_SHORT, E_A_LONG, E_L_SHORT, E_L_LONG, E_TILT, E_BUTTONS, E_TAP, E_BLE_RX, E_CLOCK_MINUTE, E_CLOCK_HOUR, B_A, B_L, E_DOWN, E_UP, scriptConsole, log, OlleeDate);
+    result = factory(ollee, E_A_SHORT, E_A_LONG, E_L_SHORT, E_L_LONG, E_TILT, E_BUTTONS, E_TAP, E_BLE_RX, E_CLOCK_MINUTE, E_CLOCK_HOUR, E_BLE_CONNECT, E_BLE_DISCONNECT, B_A, B_L, E_DOWN, E_UP, scriptConsole, log, OlleeDate);
   } catch (e) {
     logError(`Script error: ${scriptErrorMessage(e)}`);
     setStatus('script error', 'error');
@@ -533,6 +534,8 @@ function runScript(source) {
   if ((subs & E_BLE_RX) && typeof hooks.ble_rx === 'function') effectiveSubs |= E_BLE_RX;
   if ((subs & E_CLOCK_MINUTE) && typeof hooks.clock_minute === 'function') effectiveSubs |= E_CLOCK_MINUTE;
   if ((subs & E_CLOCK_HOUR) && typeof hooks.clock_hour === 'function') effectiveSubs |= E_CLOCK_HOUR;
+  if ((subs & E_BLE_CONNECT) && typeof hooks.ble_connect === 'function') effectiveSubs |= E_BLE_CONNECT;
+  if ((subs & E_BLE_DISCONNECT) && typeof hooks.ble_disconnect === 'function') effectiveSubs |= E_BLE_DISCONNECT;
 
   log('-- face loaded --');
   // On the watch init() runs at upload/boot, before the face is entered,
@@ -758,7 +761,7 @@ function bleWrite() {
 bleSendBtn.addEventListener('click', bleWrite);
 bleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') bleWrite(); });
 
-// --- Clock ticks (forge_clock_dispatch): the watch's RTC fires
+// --- Clock ticks (forge_broadcast_dispatch): the watch's RTC fires
 // Event_ALARM_MINUTE at each new minute, then Event_ALARM_HOURLY on the hour
 // (alarm_helper.c). They reach clock_minute()/clock_hour() while the face is
 // running with the bit in `subscribe`, or at any time after Ollee.subscribe;
@@ -766,8 +769,11 @@ bleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') bleWrite();
 // same one OlleeDate reads. The Minute/Hour tick buttons fire one right away
 // for testing, without changing the time `new Date()` returns. ---
 
-// Runs `hook` if the script should get this tick. Returns whether it did.
-function deliverClock(bit, hook) {
+// Runs `hook` if the script should get this clock tick or BLE connection
+// change: while the face is running with `bit` in `subscribe`, or at any
+// time after Ollee.subscribe(bit) (forge_broadcast_dispatch). Returns
+// whether it did.
+function deliverBroadcast(bit, hook) {
   const foreground = running && (effectiveSubs & bit);
   const background = ollee && (ollee.bgSubs & bit);
   if (!hooks || faceDisabled || !(foreground || background)) return false;
@@ -776,9 +782,9 @@ function deliverClock(bit, hook) {
 }
 
 function clockTick(onHour, manual) {
-  const minute = deliverClock(E_CLOCK_MINUTE, 'clock_minute');
+  const minute = deliverBroadcast(E_CLOCK_MINUTE, 'clock_minute');
   // A failing clock_minute() disables the face before clock_hour() runs
-  const hour = onHour && deliverClock(E_CLOCK_HOUR, 'clock_hour');
+  const hour = onHour && deliverBroadcast(E_CLOCK_HOUR, 'clock_hour');
   if (minute || hour) {
     log(`clock tick:${minute ? ' clock_minute()' : ''}${hour ? ' clock_hour()' : ''}${running ? '' : ' (background)'}`);
   } else if (manual) {
@@ -794,6 +800,23 @@ function scheduleClockTick() {
   }, 60000 - (now % 60000));
 }
 scheduleClockTick();
+
+// --- BLE connection changes (Event_BLE_APP_CONNECT/DISCONNECT, delivered by
+// forge_broadcast_dispatch): ticking or unticking "phone connected" plays a
+// phone connecting or disconnecting. Ollee.connected() already reports the
+// new state when ble_connect()/ble_disconnect() runs, as on the watch. ---
+
+bleConnectedBox.addEventListener('change', () => {
+  const connected = bleConnectedBox.checked;
+  const bit = connected ? E_BLE_CONNECT : E_BLE_DISCONNECT;
+  const hook = connected ? 'ble_connect' : 'ble_disconnect';
+  log(connected ? 'Phone connected' : 'Phone disconnected');
+  if (deliverBroadcast(bit, hook)) {
+    log(`${hook}()${running ? '' : ' (background)'}`);
+  } else if (hooks) {
+    log(`(${hook} dropped: not subscribed, or the face is not on screen)`);
+  }
+});
 
 document.getElementById('clock-minute-btn').addEventListener('click', () => {
   log('Minute tick');

@@ -14,6 +14,8 @@ const E_TAP = 1 << 6;
 const E_BLE_RX = 1 << 7;
 const E_CLOCK_MINUTE = 1 << 8;
 const E_CLOCK_HOUR = 1 << 9;
+const E_BLE_CONNECT = 1 << 10;
+const E_BLE_DISCONNECT = 1 << 11;
 
 // Values passed to a script's button(btn, event, millis) handler.
 const B_A = 0;
@@ -24,7 +26,7 @@ const E_UP = 1;
 const EJS_TIMER_SLOTS = 4;
 
 // E_* bits Ollee.subscribe accepts (FORGE_BG_EVENTS in forge_interpreter.h)
-const FORGE_BG_EVENTS = E_BLE_RX | E_CLOCK_MINUTE | E_CLOCK_HOUR;
+const FORGE_BG_EVENTS = E_BLE_RX | E_CLOCK_MINUTE | E_CLOCK_HOUR | E_BLE_CONNECT | E_BLE_DISCONNECT;
 
 // Forge BLE service limits (forge_ble.h): bytes per GATT write/notification,
 // and bytes Ollee.send() can have waiting to go out.

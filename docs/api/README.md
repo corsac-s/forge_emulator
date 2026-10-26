@@ -29,6 +29,8 @@ their bit in `subscribe`. See [Lifecycle](../concepts/lifecycle.md).
 | `ble_rx(data)` | `E_BLE_RX` | A phone wrote ≤ 20 bytes. `data` is a byte string. |
 | `clock_minute()` | `E_CLOCK_MINUTE` | Each new minute |
 | `clock_hour()` | `E_CLOCK_HOUR` | Each new hour |
+| `ble_connect()` | `E_BLE_CONNECT` | A phone connected over BLE |
+| `ble_disconnect()` | `E_BLE_DISCONNECT` | The phone disconnected |
 
 And one top-level value:
 
@@ -52,6 +54,8 @@ const subscribe = E_A_SHORT + E_L_SHORT;   // bitmask of events to receive while
 | `E_BLE_RX` | `1 << 7` | ✓ |
 | `E_CLOCK_MINUTE` | `1 << 8` | ✓ |
 | `E_CLOCK_HOUR` | `1 << 9` | ✓ |
+| `E_BLE_CONNECT` | `1 << 10` | ✓ |
+| `E_BLE_DISCONNECT` | `1 << 11` | ✓ |
 
 "Background" bits can also be passed to `Ollee.subscribe`.
 
@@ -108,7 +112,7 @@ All draw calls do nothing while `Ollee.active()` is `false`. See
 | Call | Does |
 | --- | --- |
 | `Ollee.active()` | `true` while your face is on screen |
-| `Ollee.subscribe(bits)` | Receive `E_BLE_RX` / `E_CLOCK_MINUTE` / `E_CLOCK_HOUR` even off screen. Returns `false` for other bits. |
+| `Ollee.subscribe(bits)` | Receive `E_BLE_RX` / `E_CLOCK_MINUTE` / `E_CLOCK_HOUR` / `E_BLE_CONNECT` / `E_BLE_DISCONNECT` even off screen. Returns `false` for other bits. |
 | `Ollee.unsubscribe(bits)` | Stops background delivery of those bits |
 
 ### Bluetooth
@@ -117,7 +121,7 @@ See [Input](../concepts/input.md#bluetooth-ble_rxdata).
 
 | Call | Does |
 | --- | --- |
-| `Ollee.connected()` | `true` if a phone is connected |
+| `Ollee.connected()` | `true` if a phone is connected. To react to changes instead of polling, use `ble_connect()`/`ble_disconnect()`. |
 | `Ollee.send(data)` | Sends up to 256 bytes to the phone as 20-byte notifications. Returns `false` if not connected, empty, or too long. Non-byte text is sent UTF-8 encoded. |
 
 ### Timers

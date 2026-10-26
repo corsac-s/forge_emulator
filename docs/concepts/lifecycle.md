@@ -48,15 +48,18 @@ const subscribe = E_A_SHORT + E_L_SHORT + E_CLOCK_MINUTE;
 | `E_BLE_RX` | `ble_rx(data)` | A phone writes to the Forge BLE service |
 | `E_CLOCK_MINUTE` | `clock_minute()` | Each new minute |
 | `E_CLOCK_HOUR` | `clock_hour()` | Each new hour (after `clock_minute()`) |
+| `E_BLE_CONNECT` | `ble_connect()` | A phone connects over BLE |
+| `E_BLE_DISCONNECT` | `ble_disconnect()` | The phone disconnects |
 
 Bits in `subscribe` only deliver while the face is **on screen**. See
 [Input](input.md) for the details of each.
 
 ## Background events
 
-Three events can keep reaching your script while another face is showing:
-`E_BLE_RX`, `E_CLOCK_MINUTE` and `E_CLOCK_HOUR`. Turn that on with
-`Ollee.subscribe(...)`, usually from `init()`:
+Five events can keep reaching your script while another face is showing:
+`E_BLE_RX`, `E_CLOCK_MINUTE`, `E_CLOCK_HOUR`, `E_BLE_CONNECT` and
+`E_BLE_DISCONNECT`. Turn that on with `Ollee.subscribe(...)`, usually from
+`init()`:
 
 ```js
 function init() {
@@ -69,7 +72,7 @@ function clock_hour() {
 }
 ```
 
-- `Ollee.subscribe` and `Ollee.unsubscribe` only accept those three bits and
+- `Ollee.subscribe` and `Ollee.unsubscribe` only accept those five bits and
   return `false` for anything else.
 - Leaving the face doesn't unsubscribe. Only `Ollee.unsubscribe` does (or an
   error, or reloading the script).
