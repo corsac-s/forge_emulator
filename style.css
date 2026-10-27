@@ -153,6 +153,27 @@ h1 { margin: 0 0 4px; font-size: 20px; }
 }
 .clock-note { font-size: 13px; color: #9aa0a6; }
 
+.databank-details { width: 100%; font-size: 13px; color: #9aa0a6; }
+.databank-details summary { cursor: pointer; text-align: center; }
+.databank-entries {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 8px;
+}
+.databank-entries label { text-align: right; }
+.databank-entries input[type="text"] {
+  min-width: 0;
+  background: #101114;
+  color: #e6e6e6;
+  border: 1px solid #33363d;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-family: monospace;
+}
+
 .editor-panel {
   flex: 1;
   min-width: 420px;

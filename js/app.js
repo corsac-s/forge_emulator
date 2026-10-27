@@ -469,6 +469,7 @@ function runScript(source) {
   ollee = new OlleeRuntime(watchface, log);
   ollee.bleConnected = () => bleConnectedBox.checked;
   ollee.onBleNotify = (bytes) => log(`BLE notify -> phone: ${formatBytes(bytes)}`);
+  ollee.databankEntries = () => databankInputs.map((el) => el.value);
   // running is false on the home screen and while init() runs
   ollee.isActive = () => running;
 
@@ -843,6 +844,35 @@ document.getElementById('clock-hour-btn').addEventListener('click', () => {
   log('Hour tick');
   clockTick(true, true);
 });
+
+// --- Databank (storage_databank_entry): the 10 entries the phone stores on
+// the watch over OAP, which Ollee.databank(index) reads. Rows are numbered
+// 1-10 like the stock databank face; the script's index is 0-9. Edits take
+// effect on the script's next Ollee.databank() call, as a phone update
+// would. Sample entries fill every row except 5 and 6, so examples/databank.js
+// has short, long and empty entries to show. ---
+
+const DATABANK_SAMPLE = [
+  '555-0134', 'milk eggs bread jam', 'gate b12', 'dentist tue 3pm', '',
+  '', 'pick up dry cleaning', 'locker 4417', 'call mom sunday', 'bike lock 2580',
+];
+const databankEl = document.getElementById('databank-entries');
+const databankInputs = [];
+for (let i = 0; i < DATABANK_ENTRIES; i++) {
+  const label = document.createElement('label');
+  label.htmlFor = `databank-${i}`;
+  label.textContent = String(i + 1);
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.id = `databank-${i}`;
+  input.maxLength = DATABANK_ENTRY_MAX_LEN;
+  input.placeholder = 'empty';
+  input.spellcheck = false;
+  input.value = (DATABANK_SAMPLE[i] || '').slice(0, DATABANK_ENTRY_MAX_LEN);
+  input.title = `Ollee.databank(${i})`;
+  databankEl.append(label, input);
+  databankInputs.push(input);
+}
 
 // Keyboard wiring: L/M/A/T/P mirror the on-screen buttons, and unlike a mouse
 // (which can only hold one button down at a time) a keyboard can hold

@@ -106,6 +106,7 @@ All draw calls do nothing while `Ollee.active()` is `false`. See
 | `Ollee.hwRand()` | Hardware random integer, 0 to `0xEFFF` |
 | `Ollee.latitude()` | Latitude in degrees, as set by the paired phone (3 decimals). 0 if not set. |
 | `Ollee.longitude()` | Longitude in degrees, likewise |
+| `Ollee.databank(index)` | Text of databank entry `index`, 0 to 9: the entries (up to 20 characters each) the phone stores for the watch's databank face. `''` if the entry is empty, `undefined` if `index` isn't 0 to 9. Each call reads the stored entry, so it picks up the phone's changes. Text over 6 characters needs scrolling ([Display](../concepts/display.md#showing-longer-text)). In the emulator, edit the entries in the **Databank** panel. |
 | `Ollee.hmacSha1(key, message)` | HMAC-SHA1 of `message` with `key`, as a 20-byte `Uint8Array`. Each argument can be a string (one byte per character), an array of numbers 0-255, or a `Uint8Array`, of any length.|
 | `Ollee.sha1(data)` | Plain (unkeyed) SHA-1 of `data`, as a 20-byte `Uint8Array`. `data` takes the same forms as `hmacSha1`'s arguments. Use it for checksums and content IDs. To authenticate with a secret, use `hmacSha1`. |
 

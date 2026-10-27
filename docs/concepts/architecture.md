@@ -43,7 +43,7 @@ firmware does.
 - Run up to 4 timers at once.
 - Beep, and turn the LED on and off.
 - Read the temperature, step count, battery voltage, a hardware random number,
-  and the location the paired phone set.
+  and the location and databank entries the paired phone set.
 - Talk to a phone app over Bluetooth LE.
 - Wake on each new minute or hour, even while another face is showing.
 
@@ -63,6 +63,7 @@ The emulator mirrors the firmware closely, but some things differ:
 - It runs your browser's JavaScript engine, which supports more of the
   language than Espruino. Test on the watch before you share a face.
 - Sensors are simulated: steps are fixed at 5000, temperature drifts around
-  23 °C, battery reads 2.9 V, and location is fixed to Toronto.
+  23 °C, battery reads 2.9 V, and location is fixed to Toronto. Databank
+  entries come from the **Databank** panel instead of the phone.
 - Timers are as accurate as the browser's, and speed or memory limits aren't
   emulated.

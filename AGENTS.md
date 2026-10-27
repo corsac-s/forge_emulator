@@ -77,7 +77,10 @@ the script in the emulator:
 
 The Bluetooth panel sends BLE writes to `ble_rx`, and its **phone connected**
 box fires `ble_connect`/`ble_disconnect` when ticked or unticked. The Clock
-panel fires `clock_minute`/`clock_hour` on demand.
+panel fires `clock_minute`/`clock_hour` on demand. The Databank panel holds the
+10 entries `Ollee.databank(index)` returns (index 0-9, up to 20 characters
+each). It starts with rows 5 and 6 empty and the rest filled. Change it to
+test long, short and empty entries.
 
 ## Map of the docs
 

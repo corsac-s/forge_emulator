@@ -33,6 +33,7 @@ the template face loaded. Use **Load file** to open other examples from the
 | **input** | The watch's L, M and A buttons, plus TILT and TAP gestures. Keyboard: `l` `m` `a` `t` `p`. Click a button for a short press, or hold it down for a long press (1 s for A, 1.5 s for L). HOLD lights on the watch when the long press registers. |
 | **Bluetooth** | Plays a phone app writing to the watch, and toggles "phone connected" (which fires `ble_connect()`/`ble_disconnect()`). |
 | **Clock** | Fires minute/hour clock events on demand. |
+| **Databank** | The 10 databank entries `Ollee.databank()` returns. This data is read only, and can be set with the Ollee Watch App. Edit them here to test your face with different text. |
 | **controls** | File name, Load/Save, Run/Stop. |
 | **source** | The script editor, with a size bar showing bytes used against the watch's limit. |
 | **log** | Script output and errors. **Copy log** copies it. |

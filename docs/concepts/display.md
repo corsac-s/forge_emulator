@@ -38,6 +38,27 @@ Ollee.drawMain(pad(h) + pad(m) + pad(s));   // 12:34 56
 Ollee.drawColon(1);
 ```
 
+### Showing longer text
+
+Only 6 characters fit, so scroll anything longer, such as a databank entry
+from `Ollee.databank()` (up to 20 characters). Draw a 6-character window of the
+text, and move it along one character per timer tick. Adding a space to the
+end, and wrapping around, keeps the end and the start apart as they go by:
+
+```js
+function windowAt(text, off) {
+  var loop = text + ' ';
+  var w = '';
+  for (var k = 0; k < 6; k++) w += loop.charAt((off + k) % loop.length);
+  return w;
+}
+// every 350 ms: off = (off + 1) % (text.length + 1); Ollee.drawMain(windowAt(text, off));
+```
+
+A timer costs power for as long as it runs (see [Power](power.md)), so stop
+it once the text has gone by, and let a button play it again.
+[examples/databank.js](../../examples/databank.js) works this way.
+
 Each draw call updates only its own area. `Ollee.clear()` blanks the digits and
 the colon/LAP/PM/HR indicators, leaving the bell, chime and face name as they are.
 Call it at the start of `enter()` so you don't inherit whatever was on screen

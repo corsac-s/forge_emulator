@@ -53,6 +53,10 @@ function timerDelays(delay) {
 // E_* bits Ollee.subscribe accepts (FORGE_BG_EVENTS in forge_interpreter.h)
 const FORGE_BG_EVENTS = E_BLE_RX | E_CLOCK_MINUTE | E_CLOCK_HOUR | E_BLE_CONNECT | E_BLE_DISCONNECT;
 
+// Databank size (DATABANK_ENTRIES, DATABANK_ENTRY_MAX_LEN in sm_databank.h)
+const DATABANK_ENTRIES = 10;
+const DATABANK_ENTRY_MAX_LEN = 20;
+
 // Forge BLE service limits (forge_ble.h): bytes per GATT write/notification,
 // and bytes Ollee.send() can have waiting to go out.
 const FORGE_BLE_MAX_DATA_LEN = 20;
@@ -154,6 +158,8 @@ class OlleeRuntime {
     // and where Ollee.send()'s notifications go - both set by app.js.
     this.bleConnected = () => true;
     this.onBleNotify = null;
+    // The databank entries' text (the Databank panel) - set by app.js
+    this.databankEntries = () => [];
     // Whether the face is on screen - set by app.js
     this.isActive = () => true;
     // E_* bits subscribed with Ollee.subscribe (background delivery)
@@ -293,6 +299,17 @@ class OlleeRuntime {
 
   battery() {
     return Math.round(this._batteryVolts * 1000) / 1000;
+  }
+
+  // Text of databank entry `index` (jswrap_ollee_databank): '' if it's
+  // empty, undefined if index isn't 0 to 9. Read live from the Databank
+  // panel, as the watch reads flash on each call.
+  databank(index) {
+    // Espruino's int conversion: non-numbers become 0, fractions truncate
+    let i = Math.trunc(Number(index));
+    if (!Number.isFinite(i)) i = 0;
+    if (i < 0 || i >= DATABANK_ENTRIES) return undefined;
+    return String(this.databankEntries()[i] || '').slice(0, DATABANK_ENTRY_MAX_LEN);
   }
 
   // --- Forge BLE service (jswrap_ollee_send / forge_ble.c) ---
