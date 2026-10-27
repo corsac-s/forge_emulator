@@ -23,7 +23,7 @@ their bit in `subscribe`. See [Lifecycle](../concepts/lifecycle.md).
 | `a_long()` | `E_A_LONG` | A held 1000 ms |
 | `l_short()` | `E_L_SHORT` | L pressed |
 | `l_long()` | `E_L_LONG` | L held 1500 ms |
-| `button(btn, event, millis)` | `E_BUTTONS` | A or L down/up. `btn` is `B_A`/`B_L`, `event` is `E_DOWN`/`E_UP`, `millis` is ms since boot. |
+| `button(btn, event, millis)` | `E_BUTTONS` | A or L down/up. `btn` is `B_A`/`B_L`, `event` is `E_DOWN`/`E_UP`, `millis` is the system tick count in ms, which stops while the watch sleeps, so time with `new Date().getTime()` instead ([details](../concepts/input.md#raw-downup-buttonbtn-event-millis)). |
 | `tilt()` | `E_TILT` | Wrist tilt |
 | `tap()` | `E_TAP` | Triple tap |
 | `ble_rx(data)` | `E_BLE_RX` | A phone wrote ≤ 20 bytes. `data` is a byte string. |

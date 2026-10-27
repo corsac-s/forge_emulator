@@ -35,6 +35,8 @@ high-power timer going for as long as the timer exists, so even
   `new Date().getTime()` and subtract. Then you can refresh the display less
   often (or not at all while off screen) without losing time.
   [examples/countdown.js](../../examples/countdown.js) works this way.
+  Don't use the `millis` argument of `button()` for this: it's the system tick
+  count, which stops while the watch sleeps in STOP mode.
 - **Keep background subscriptions few.** `Ollee.subscribe` wakes your script
   even while you're on other faces. Subscribe to what the feature needs, and
   offer a way to turn it off.

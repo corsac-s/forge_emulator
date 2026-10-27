@@ -35,12 +35,31 @@ const subscribe = E_BUTTONS;
 function button(btn, event, millis) {
   // btn:    B_A or B_L
   // event:  E_DOWN or E_UP
-  // millis: ms since boot when it happened (wraps at 2^32)
+  // millis: system tick count (ms) when it happened (wraps at 2^32).
+  //         Stops while the watch sleeps, so don't time with it.
   if (btn === B_A && event === E_UP) Ollee.beep();
 }
 ```
 
 Use it to measure press length, act on release, or detect A+L held together.
+
+> **Don't use `millis` for timing.** On the watch it's the system tick count,
+> and that stops while the watch sleeps in low-power STOP mode, which it does
+> between events. The difference between two `millis` values only counts the
+> time the watch was awake, so it comes out too short, often by a lot. The
+> emulator never sleeps, and neither does a dev board with low power turned
+> off, so the bug doesn't show up until the script runs on a real watch.
+> Read `new Date().getTime()` in the handler instead. It comes from the RTC,
+> which keeps running during sleep:
+>
+> ```js
+> var pressedAt = -1;
+> function button(btn, event, millis) {
+>   var now = new Date().getTime();   // not millis
+>   if (event === E_DOWN) pressedAt = now;
+>   else if (pressedAt >= 0) log('held ' + (now - pressedAt) + ' ms');
+> }
+> ```
 In the emulator, hold several keys (`a` + `l`) to test combos.
 
 ## Gestures

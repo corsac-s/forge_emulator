@@ -37,6 +37,11 @@ browser.
   the face cancels all timers, so restart them in `enter()` and reset your
   stored ids in `exit()`. `Ollee.clearInterval(null)` (or with no id)
   cancels *all* of the script's timers, so only clear an id you actually hold.
+- **Time with `new Date().getTime()`, never with `button()`'s `millis`.**
+  `millis` is the system tick count, which stops while the watch sleeps in
+  low-power STOP mode, so intervals measured with it come out too short on a
+  real watch. They look right in the emulator, which never sleeps. The RTC
+  behind `Date` keeps running during sleep.
 - **An uncaught error disables the face** on the watch. Wrap risky code in
   `try`/`catch`.
 - **Size limit: 8158 bytes** (UTF-8). Keep scripts small. Minification never
