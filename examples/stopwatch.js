@@ -35,7 +35,7 @@ function enter() {
   log("enter(): running=" + running + " timer=" + timer + " sw=" + sw + " exitedAt=" + exitedAt);
   Ollee.clear();
   Ollee.drawColon(1);
-  draw();
+  draw(sw, leg);
 }
 
 function pad(n) {
@@ -58,14 +58,14 @@ function msToTime(duration) {
 }
 
 
-function draw() {
-  let display = msToTime(sw);
+function draw(time, leg_nb) {
+  let display = msToTime(time);
 
   if(display["hours"])
     Ollee.drawMain(pad(display["hours"]) + pad(display["minutes"]) + pad(display["seconds"]));
   else
     Ollee.drawMain(pad(display["minutes"]) + pad(display["seconds"]) + pad(display["centiseconds"]));
-  Ollee.drawDay(leg);
+  Ollee.drawDay(leg_nb);
 }
 
 function exit() {
@@ -87,7 +87,7 @@ function toggleColon() {
 
 function tick() {
   sw +=10;
-  draw();
+  draw(sw, leg);
 }
 
 function start() {
@@ -96,7 +96,7 @@ function start() {
   running = true;
   timer = Ollee.setInterval('tick()', 10);
   colon = Ollee.setInterval(toggleColon, 500);
-  draw();
+  draw(sw, leg);
   log("exit(): running=" + running + " sw=" + sw);
 }
 
@@ -104,7 +104,7 @@ function stop() {
   running = false;
   Ollee.clearInterval(timer)
   Ollee.clearInterval(colon)
-  draw();
+  draw(sw, leg);
   Ollee.drawColon(1);
   colonOn=true;
   log("stop(): running=" + running + " sw=" + sw);
