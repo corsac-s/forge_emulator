@@ -108,6 +108,13 @@ function stop() {
   colonOn=true;
   log("stop(): running=" + running + " sw=" + sw);
 }
+
+function reset() {
+  sw = 0;
+  leg++;
+  draw();
+}
+
 // A button pressed: start/stop the stopwatch
 function a_short() {
   log("a_short(): running=" + running)
@@ -120,8 +127,6 @@ function a_short() {
 
 // L button pressed: reset the stopwatch
 function l_short() {
-  log("l_short(): sw=" + sw);
-  sw = 0;
-  leg++;
-  draw();
+  log("l_short(): sw=" + sw + " leg=" + leg);
+  reset();
 }
