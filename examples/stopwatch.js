@@ -17,6 +17,7 @@ var colon = -1;
 var sw = 0;
 var exitedAt = -1;
 var colonOn = true;
+var leg = 0;
 
 function init() {
 }
@@ -63,6 +64,7 @@ function draw() {
     Ollee.drawMain(pad(display["hours"]) + pad(display["minutes"]) + pad(display["seconds"]));
   else
     Ollee.drawMain(pad(display["minutes"]) + pad(display["seconds"]) + pad(display["centiseconds"]));
+  Ollee.drawDay(leg);
 }
 
 function exit() {
@@ -88,6 +90,8 @@ function tick() {
 }
 
 function start() {
+  if(leg == 0)
+    leg=1;
   running = true;
   timer = Ollee.setInterval('tick()', 10);
   colon = Ollee.setInterval(toggleColon, 500);
@@ -118,5 +122,6 @@ function a_short() {
 function l_short() {
   log("l_short(): sw=" + sw);
   sw = 0;
+  leg++;
   draw();
 }
