@@ -18,7 +18,8 @@ var sw = 0;
 var exitedAt = -1;
 var colonOn = true;
 var leg = 0;
-var legs = {};
+var legs = Array();
+legs[0]=0;
 
 function init() {
 }
@@ -141,14 +142,14 @@ function a_short() {
 
 // L button pressed: flyback or reset depending on the conditions
 function l_short() {
-  log("l_short(): sw=" + sw + " leg=" + leg);
+  log("l_short(): sw=" + sw + " leg=" + leg + " legs.length=" + legs.length);
   if(running)
     if(leg<39) // the day display doesn't really handle fine over 39
       flyback();
     else
       reset();
   else
-    if (leg > 1)
+    if (legs.length > 1)
       display_previous_leg();
     else
       reset();
