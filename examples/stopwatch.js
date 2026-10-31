@@ -8,7 +8,7 @@
 // - use drawDay() to count the days (not that it's really useful)
 // - reduce interval to 1s once we switch to hour mode
 
-const subscribe = E_A_SHORT + E_L_SHORT;
+const subscribe = E_A_SHORT + E_L_SHORT + E_L_LONG;
 
 var running = false;
 var timer = -1;
@@ -121,6 +121,10 @@ function reset() {
   draw();
 }
 
+function display_next_leg() {
+  // TODO: display next (or previous?) leg data
+}
+
 // A button pressed: start/stop the stopwatch
 function a_short() {
   log("a_short(): running=" + running)
@@ -131,11 +135,19 @@ function a_short() {
   log("a_short(): running=" + running)
 }
 
-// L button pressed: reset the stopwatch
+// L button pressed: flyback or reset depending on the conditions
 function l_short() {
   log("l_short(): sw=" + sw + " leg=" + leg);
   if(running)
     flyback();
   else
-    reset();
+    if (leg > 1)
+      display_next_leg();
+    else
+      reset();
+}
+
+// L button hold: unconditionnal reset
+function l_long() {
+  reset();
 }
