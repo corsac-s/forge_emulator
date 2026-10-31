@@ -11,17 +11,19 @@
 
 const subscribe = E_A_SHORT + E_L_SHORT + E_L_LONG;
 
-var running = false;
-var timer = -1;
-var colon = -1;
+var running = false; // is the stopwatch currently running
+var timer = -1; // tick timer
+var colon = -1; // colon timer
 
-var sw = 0;
-var exitedAt = -1;
-var colonOn = true;
-var leg = 0;
-var legs = Array();
+var sw = 0;        // the stopwatch itself
+var exitedAt = -1; // date we exited the face, to handle resume 
+var colonOn = true;// is the colon currently displayed
+
+var leg = 0;       // current leg number
+var legs = Array();// arraw for leg times (0 for total)
 legs[0]=0;
-var interval = 10; // 10ms at init and reset, 1000 ms after 1 hour
+
+var interval = 10; // tick interval: 10ms at init and reset, 1000 ms after 1 hour
 
 function init() {
 }
