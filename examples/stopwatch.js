@@ -18,6 +18,7 @@ var sw = 0;
 var exitedAt = -1;
 var colonOn = true;
 var leg = 0;
+var legs = {};
 
 function init() {
 }
@@ -110,6 +111,9 @@ function stop() {
 }
 
 function flyback() {
+  legs[0]+=sw
+  legs[leg] = sw
+  log("legs[" + leg + "]=" + legs[leg])
   sw = 0;
   leg++;
   draw();
