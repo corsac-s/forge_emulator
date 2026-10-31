@@ -105,6 +105,9 @@ function stop() {
   running = false;
   Ollee.clearInterval(timer)
   Ollee.clearInterval(colon)
+  legs[leg] = sw;
+  if(leg>0)
+    legs[0] += sw;
   draw(sw, leg);
   Ollee.drawColon(1);
   colonOn=true;
@@ -123,11 +126,16 @@ function flyback() {
 function reset() {
   sw = 0;
   leg = 0;
+  legs = Array();
+  legs[0] = 0;
   draw(sw, leg);
 }
 
-function display_previous_leg() {
-  // TODO: display next (or previous?) leg data
+function display_next_leg() {
+  // display next leg data
+  leg = (leg + 1) % legs.length;
+  log("legs[" + leg + "]=" + legs[leg]);
+  draw(legs[leg], leg);
 }
 
 // A button pressed: start/stop the stopwatch
@@ -149,8 +157,8 @@ function l_short() {
     else
       reset();
   else
-    if (legs.length > 1)
-      display_previous_leg();
+    if (legs.length > 2)
+      display_next_leg();
     else
       reset();
 }
