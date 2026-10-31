@@ -116,16 +116,16 @@ function flyback() {
   log("legs[" + leg + "]=" + legs[leg])
   sw = 0;
   leg++;
-  draw();
+  draw(sw, leg);
 }
 
 function reset() {
   sw = 0;
   leg = 0;
-  draw();
+  draw(sw, leg);
 }
 
-function display_next_leg() {
+function display_previous_leg() {
   // TODO: display next (or previous?) leg data
 }
 
@@ -146,7 +146,7 @@ function l_short() {
     flyback();
   else
     if (leg > 1)
-      display_next_leg();
+      display_previous_leg();
     else
       reset();
 }
