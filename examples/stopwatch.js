@@ -1,11 +1,14 @@
 // stopwatch with flyback function
+// leg count feature inspired by schffhsr
 //
 // Press A to start and stop the stopwatch
-// Press L to reset
+// Hold L to reset
+// Press L when started to flyback and start a new leg
+// Press L when stopped to display the leg times
+//
 // © 2026 Yves-Alexis Perez <corsac@corsac.net>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // TODO:
-// - use drawDay() to count the days (not that it's really useful)
 // - reduce interval to 1s once we switch to hour mode
 
 const subscribe = E_A_SHORT + E_L_SHORT + E_L_LONG;
