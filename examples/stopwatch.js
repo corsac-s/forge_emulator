@@ -143,7 +143,10 @@ function a_short() {
 function l_short() {
   log("l_short(): sw=" + sw + " leg=" + leg);
   if(running)
-    flyback();
+    if(leg<39) // the day display doesn't really handle fine over 39
+      flyback();
+    else
+      reset();
   else
     if (leg > 1)
       display_previous_leg();
