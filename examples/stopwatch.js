@@ -109,9 +109,15 @@ function stop() {
   log("stop(): running=" + running + " sw=" + sw);
 }
 
-function reset() {
+function flyback() {
   sw = 0;
   leg++;
+  draw();
+}
+
+function reset() {
+  sw = 0;
+  leg = 0;
   draw();
 }
 
@@ -128,5 +134,8 @@ function a_short() {
 // L button pressed: reset the stopwatch
 function l_short() {
   log("l_short(): sw=" + sw + " leg=" + leg);
-  reset();
+  if(running)
+    flyback();
+  else
+    reset();
 }
