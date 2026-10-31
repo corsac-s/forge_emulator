@@ -8,8 +8,6 @@
 //
 // © 2026 Yves-Alexis Perez <corsac@corsac.net>
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// TODO:
-// - reduce interval to 1s once we switch to hour mode
 
 const subscribe = E_A_SHORT + E_L_SHORT + E_L_LONG;
 
@@ -23,6 +21,7 @@ var colonOn = true;
 var leg = 0;
 var legs = Array();
 legs[0]=0;
+var interval = 10; // 10ms at init and reset, 1000 ms after 1 hour
 
 function init() {
 }
@@ -33,7 +32,7 @@ function enter() {
     var now = new Date();
     var elapsed = now - exitedAt;
     sw += elapsed;
-    timer = Ollee.setInterval('tick()', 10);
+    timer = Ollee.setInterval('tick()', interval);
     colon = Ollee.setInterval(toggleColon, 500);
   }
   log("enter(): running=" + running + " timer=" + timer + " sw=" + sw + " exitedAt=" + exitedAt);
@@ -90,7 +89,12 @@ function toggleColon() {
 }
 
 function tick() {
-  sw +=10;
+  sw +=interval;
+  if(sw >= 3600000 && interval < 1000) {
+    interval = 1000;
+    Ollee.clearInterval(timer);
+    timer = Ollee.setInterval(tick, interval);
+  }
   draw(sw, leg);
 }
 
@@ -98,7 +102,7 @@ function start() {
   if(leg == 0)
     leg=1;
   running = true;
-  timer = Ollee.setInterval('tick()', 10);
+  timer = Ollee.setInterval('tick()', interval);
   colon = Ollee.setInterval(toggleColon, 500);
   draw(sw, leg);
   log("exit(): running=" + running + " sw=" + sw);
@@ -131,6 +135,7 @@ function reset() {
   leg = 0;
   legs = Array();
   legs[0] = 0;
+  interval = 10;
   draw(sw, leg);
 }
 
